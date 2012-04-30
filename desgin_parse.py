@@ -1,8 +1,6 @@
 __author__ = 'Michael'
-import argparse, os, ConfigParser,re
+import argparse, os, re, ConfigParser
 from fsf_file import fsf_file
-
-
 
 def write_report(lines,path):
     with file(path, 'w') as out:
@@ -15,28 +13,37 @@ def fill_line(line,width):
     return line
 
 def main():
+    config_file_path="example.cfg"
     #Parse options
     parser = argparse.ArgumentParser()
     parser.add_argument('-p', '--featpath')
     parser.add_argument('-o', '--out')
-    #parser.add_argument('-t', '--type')
+    parser.add_argument('-a', '--analysis')
     args=parser.parse_args()
     feat_folder_path=args.featpath
-    #type=args.type
+    analysis=args.analysis
     out_path=args.out
 
-    FIRST_dir="\\\\192.168.2.181\MyFiles\TAF_fanal\PV\Ctrl\\x305\\r2"
-    FE_dir='\\\\192.168.2.181\MyFiles\TAF_fanal\PV\FE2\\'
-    ME_dir='\\\\192.168.2.181\MyFiles\TAF_fanal\PV\ME\\'
+    if (feat_folder_path and analysis):
+        print "Please use either -p <path to single feat folder> or"
+        print "or -a <analysis name>. Not both."
+        exit()
+
+    # read configuration file
+    if os.path.isfile(config_file_path):
+        config = ConfigParser.RawConfigParser()
+        config.read(config_file_path)
+        first_level_dir = config.get('Analysis Directories', 'first_level_dir')
+        FE_dir = config.get('Analysis Directories', 'fe_dir')
+        ME_dir = config.get('Analysis Directories', 'me_dir')
 
 
-    analysis='a8_csf'
-    first_list=os.listdir(os.path.join(FIRST_dir))
+    first_list=os.listdir(os.path.join(first_level_dir))
     first_folder=''
     for folder in first_list:
         analysis_match=re.search(analysis, folder)
         if analysis_match:
-            combined=os.path.join(FIRST_dir,folder)
+            combined=os.path.join(first_level_dir,folder)
             if os.path.isdir(combined):
                 first_folder=combined
                 break
@@ -65,7 +72,7 @@ def main():
     if first_fsf.height > height_of_all_lines:
         height_of_all_lines=first_fsf.height
     if first_fsf.preproc:
-        preprocdir=os.path.join(FIRST_dir,first_fsf.preproc)
+        preprocdir=os.path.join(first_level_dir,first_fsf.preproc)
         preproc_fsf=fsf_file((os.path.join(preprocdir,'design.fsf')))
         if preproc_fsf.height > height_of_all_lines:
             height_of_all_lines=preproc_fsf.height
