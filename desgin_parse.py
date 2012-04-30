@@ -1,6 +1,7 @@
 __author__ = 'Michael'
 import argparse, os, re, ConfigParser
 from fsf_file import fsf_file
+from excel_results import excel_results
 
 def write_report(lines,path):
     with file(path, 'w') as out:
@@ -60,7 +61,7 @@ def main():
     ME_list=os.listdir(os.path.join(ME_dir))
     ME_folders=list()
     for folder in ME_list:
-        analysis_match=re.search(analysis, folder)
+        analysis_match=re.search(analysis+"_cope", folder)
         if analysis_match:
             combined=os.path.join(ME_dir,folder)
             if os.path.isdir(combined):
@@ -126,6 +127,13 @@ def main():
         out_lines.append(fullline)
 
     write_report(out_lines,out_path)
+
+    excel_output_path="C:/Users/Michael/Desktop/test.xls"
+    #TODO need to figure out logic for not double FEs
+    if excel_output_path:
+        template_path="C:/Users/Michael/Desktop/template2.xls"
+        excel=excel_results(FE_fsf.cope_names,first_fsf.cope_names, ME_folders, template_path,excel_output_path)
+        excel.main()
 
 if __name__ == "__main__":
     main()

@@ -10,13 +10,12 @@ class fsf_file:
         self.ME_TYPE=3
         self.FIRST_TYPE=1
         self.PRE_TYPE=0
-
         self.FilePath=path
         self.fsf_lines=self.load_file()
         self.type=self.get_type()
         self.parsed=self.parse_design_file(self.fsf_lines,self.type)
         self.out_lines=self.organize_out_lines(self.parsed,self.type)
-        print 'x'
+        self.explode_parsed(self.parsed)
 
     def get_fsf_value(self,fsf_line, end):
         """ return a value from an fsf line
@@ -404,3 +403,13 @@ class fsf_file:
         else:
             out=line
         return out
+    
+    def explode_parsed(self, parsed_data, ):
+        if self.type == self.FIRST_TYPE:
+            self.analysis_name,self.output_path,self.in_file,self.design_matrix,self.ev_names,self.ev_paths,self.ev_convolves,self.ev_deriv,self.ev_temp,self.cope_names = parsed_data
+        elif self.type == self.ME_TYPE:
+            self.analysis_name,self.output_path,self.pvalue,self.zvalue,self.feat_paths,self.count = parsed_data
+        elif self.type == self.FE_TYPE:
+            self.analysis_name,self.output_path,self.feat_paths,self.count,self.design_matrix,self.regressor_matrix,self.ev_names,self.cope_names=parsed_data
+        elif self.type == self.PRE_TYPE:
+            self.analysis_name,self.output_path,self.tr,self.total_volumes,self.deleted,self.in_file,self.motion_correction,self.brain_thresh,self.smoothing=parsed_data
