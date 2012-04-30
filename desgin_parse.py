@@ -67,23 +67,33 @@ def main():
             if os.path.isdir(combined):
                 ME_folders.append(combined)
 
-
+    one_col=list()
     height_of_all_lines=0
+
     first_fsf=fsf_file(os.path.join(first_folder,'design.fsf'))
+    one_col.extend(first_fsf.one_col)
+    one_col.append(",\n")
     if first_fsf.height > height_of_all_lines:
         height_of_all_lines=first_fsf.height
     if first_fsf.preproc:
         preprocdir=os.path.join(first_level_dir,first_fsf.preproc)
         preproc_fsf=fsf_file((os.path.join(preprocdir,'design.fsf')))
+        one_col.extend(preproc_fsf.one_col)
+        one_col.append(",\n")
         if preproc_fsf.height > height_of_all_lines:
             height_of_all_lines=preproc_fsf.height
+
     FE_fsf=fsf_file(os.path.join(FE_folder,'design.fsf'))
+    one_col.append(",\n")
     if FE_fsf.height > height_of_all_lines:
         height_of_all_lines=FE_fsf.height
+    one_col.extend(FE_fsf.one_col)
+    one_col.append(",\n")
     ME_fsf=fsf_file(os.path.join(ME_folders[0],'design.fsf'))
     if ME_fsf.height > height_of_all_lines:
         height_of_all_lines=FE_fsf.height
-
+    one_col.extend(ME_fsf.one_col)
+    one_col.append(",\n")
 
 
     preproc_lines=preproc_fsf.out_lines
@@ -126,12 +136,18 @@ def main():
         fullline+='\n'
         out_lines.append(fullline)
 
-    write_report(out_lines,out_path)
+    new_one=list()
+    for row in one_col:
+        new_one.append(row+'\n')
 
-    excel_output_path="C:/Users/Michael/Desktop/test.xls"
+
+    write_report(out_lines,out_path+".csv")
+    write_report(new_one,out_path+"_one.csv")
+
+    excel_output_path="/Users/Michael/Desktop/test.xls"
     #TODO need to figure out logic for not double FEs
     if excel_output_path:
-        template_path="C:/Users/Michael/Desktop/template2.xls"
+        template_path="/Users/Michael/Desktop/template2.xls"
         excel=excel_results(FE_fsf.cope_names,first_fsf.cope_names, ME_folders, template_path,excel_output_path)
         excel.main()
 

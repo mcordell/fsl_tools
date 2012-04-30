@@ -14,8 +14,9 @@ class fsf_file:
         self.fsf_lines=self.load_file()
         self.type=self.get_type()
         self.parsed=self.parse_design_file(self.fsf_lines,self.type)
-        self.out_lines=self.organize_out_lines(self.parsed,self.type)
+        self.out_lines=self.parsed_to_csv_lines(self.parsed,self.type)
         self.explode_parsed(self.parsed)
+        self.one_col=self.get_one_column(self.parsed,self.type)
 
     def get_fsf_value(self,fsf_line, end):
         """ return a value from an fsf line
@@ -95,7 +96,7 @@ class fsf_file:
                 design_matrix[sub_index][index]=value
         return design_matrix
 
-    def organize_out_lines(self,parsed_data,type):
+    def get_one_column(self,parsed_data,type):
         width = 2
         if type == self.FIRST_TYPE:
             analysis_name,output_path,in_file,design_matrix,ev_names,ev_paths,ev_convolves,ev_deriv,ev_temp,cope_names= parsed_data
@@ -108,17 +109,17 @@ class fsf_file:
 
         out_lines=list()
         if type == self.FIRST_TYPE:
-            out_lines.append('First Level');
+            prepend='First Level'
         elif type == self.FE_TYPE:
-            out_lines.append('Fixed Effects');
+            prepend='Fixed Effects'
         elif type == self.ME_TYPE:
-            out_lines.append('Mixed Effects');
+            prepend='Mixed Effects'
         elif type == self.PRE_TYPE:
-            out_lines.append('Preproc');
+            prepend='Preproc'
 
-        out_lines.append("Analysis Name: "+analysis_name)
+        out_lines.append(prepend+" Name:,"+analysis_name)
         if type == self.FIRST_TYPE or self.PRE_TYPE:
-            out_lines.append("Input file: "+in_file);
+            out_lines.append("Input file:,"+in_file);
             out_lines.append(',')
         if type == self.FE_TYPE:
             out_lines.append("Input Count:, "+count)
@@ -127,36 +128,31 @@ class fsf_file:
         if type == self.ME_TYPE:
             out_lines.append("p-value:,"+pvalue)
             out_lines.append("z-value:,"+zvalue)
-            out_lines.append("Num subjects:, "+count)
+            out_lines.append("Num subjects:,"+count)
             out_lines.append(',')
 
-        if type == self.ME_TYPE or type == self.FE_TYPE:
+        if  type == self.FE_TYPE:
             out_lines.append('Inputs:')
             for ind in range(1,len(feat_paths)+1):
                 i=str(ind)
                 line=feat_paths[i]
-                out_lines.append(line)
-        if type == self.FE_TYPE:
-            out_lines.append(',')
-            out_lines.append('Regressor Matrix:')
-            len_matrix=len(regressor_matrix[0])
-            if len_matrix > width:
-                width = len_matrix
-            regressor_matrix[0][0]=''
-            for row in regressor_matrix:
-                row=",".join(row)
-                out_lines.append(row)
-            out_lines.append(',')
+                out_lines.append(','+line)
 
-        if type == self.FIRST_TYPE:
+        #TODO: Subject pattern is hardcocded here
+        if type == self.ME_TYPE:
+            out_lines.append('Subjects:')
+            for ind in range(1,len(feat_paths)+1):
+                i=str(ind)
+                line=feat_paths[i]
+                value=re.search("x\d\d\d",line)
+                out_lines.append(','+value.group(0))
+
+        if type == self.FIRST_TYPE or type == self.FE_TYPE:
             out_lines.append('Regressors:')
-            out_lines.append('Name,Convolution,Add Temporal Derivative,Apply Temporal Filtering,Path')
             for ind in range(1,len(ev_names)+1):
                 i=str(ind)
-                line=[ev_names[i],ev_convolves[i],ev_deriv[i],ev_temp[i],ev_paths[i]]
-                if width < 5:
-                    width = 5
-                out_lines.append(",".join(line))
+                line=','+ev_names[i]
+                out_lines.append(line)
             out_lines.append(',')
             #out_lines.append('Contrasts:')
             #for ind in range(1,len(cope_names)+1):
@@ -165,13 +161,10 @@ class fsf_file:
             #   out_lines.append(",".join(line))
             #out_lines.append(',')
         if type == self.FIRST_TYPE or type == self.FE_TYPE:
-            out_lines.append('Contrast Matrix:')
-            #design_matrix[0][0]=''
-            len_matrix=len(design_matrix[0])
-            if len_matrix > width:
-                width = len_matrix
-            for row in design_matrix:
-                row=",".join(row)
+            out_lines.append('Contrasts:')
+            for ind in range(1,len(cope_names)+1):
+                i=str(ind)
+                row=","+cope_names[i]
                 out_lines.append(row)
         if type == self.PRE_TYPE:
            tr,total_volumes,deleted,in_file,motion_correction,brain_thresh,smoothing
@@ -181,8 +174,6 @@ class fsf_file:
            out_lines.append("Motion Correction:, "+motion_correction)
            out_lines.append("Brain Thresholding:, "+brain_thresh)
            out_lines.append("Smoothing:, "+smoothing)
-        self.width=width
-        self.height=len(out_lines)
         return out_lines
 
     def parse_design_file(self,fsf_lines, type):
@@ -403,7 +394,95 @@ class fsf_file:
         else:
             out=line
         return out
-    
+    def parsed_to_csv_lines(self,parsed_data,type):
+        width = 2
+        if type == self.FIRST_TYPE:
+            analysis_name,output_path,in_file,design_matrix,ev_names,ev_paths,ev_convolves,ev_deriv,ev_temp,cope_names= parsed_data
+        elif type == self.ME_TYPE:
+            analysis_name,output_path,pvalue,zvalue,feat_paths,count = parsed_data
+        elif type == self.FE_TYPE:
+            analysis_name,output_path,feat_paths,count,design_matrix,regressor_matrix,ev_names,cope_names=parsed_data
+        elif type == self.PRE_TYPE:
+            analysis_name,output_path,tr,total_volumes,deleted,in_file,motion_correction,brain_thresh,smoothing=parsed_data
+
+        out_lines=list()
+        if type == self.FIRST_TYPE:
+            out_lines.append('First Level');
+        elif type == self.FE_TYPE:
+            out_lines.append('Fixed Effects');
+        elif type == self.ME_TYPE:
+            out_lines.append('Mixed Effects');
+        elif type == self.PRE_TYPE:
+            out_lines.append('Preproc');
+
+        out_lines.append("Analysis Name:,"+analysis_name)
+        if type == self.FIRST_TYPE or self.PRE_TYPE:
+            out_lines.append("Input file:,"+in_file);
+            out_lines.append(',')
+        if type == self.FE_TYPE:
+            out_lines.append("Input Count:, "+count)
+        if type == self.ME_TYPE or type == self.FE_TYPE:
+            out_lines.append("Outpath:,"+output_path)
+        if type == self.ME_TYPE:
+            out_lines.append("p-value:,"+pvalue)
+            out_lines.append("z-value:,"+zvalue)
+            out_lines.append("Num subjects:,"+count)
+            out_lines.append(',')
+
+        if type == self.ME_TYPE or type == self.FE_TYPE:
+            out_lines.append('Inputs:')
+            for ind in range(1,len(feat_paths)+1):
+                i=str(ind)
+                line=feat_paths[i]
+                out_lines.append(line)
+        if type == self.FE_TYPE:
+            out_lines.append(',')
+            out_lines.append('Regressor Matrix:')
+            len_matrix=len(regressor_matrix[0])
+            if len_matrix > width:
+                width = len_matrix
+            regressor_matrix[0][0]=''
+            for row in regressor_matrix:
+                row=",".join(row)
+                out_lines.append(row)
+            out_lines.append(',')
+
+        if type == self.FIRST_TYPE:
+            out_lines.append('Regressors:')
+            out_lines.append('Name,Convolution,Add Temporal Derivative,Apply Temporal Filtering,Path')
+            for ind in range(1,len(ev_names)+1):
+                i=str(ind)
+                line=[ev_names[i],ev_convolves[i],ev_deriv[i],ev_temp[i],ev_paths[i]]
+                if width < 5:
+                    width = 5
+                out_lines.append(",".join(line))
+            out_lines.append(',')
+            #out_lines.append('Contrasts:')
+            #for ind in range(1,len(cope_names)+1):
+            #   i=str(ind)
+            #   line=[cope_names[i]]
+            #   out_lines.append(",".join(line))
+            #out_lines.append(',')
+        if type == self.FIRST_TYPE or type == self.FE_TYPE:
+            out_lines.append('Contrast Matrix:')
+            #design_matrix[0][0]=''
+            len_matrix=len(design_matrix[0])
+            if len_matrix > width:
+                width = len_matrix
+            for row in design_matrix:
+                row=",".join(row)
+                out_lines.append(row)
+        if type == self.PRE_TYPE:
+            tr,total_volumes,deleted,in_file,motion_correction,brain_thresh,smoothing
+            out_lines.append("TR:, "+tr)
+            out_lines.append("Total Volumes:, "+total_volumes)
+            out_lines.append("Deleted Volumes:, "+deleted)
+            out_lines.append("Motion Correction:, "+motion_correction)
+            out_lines.append("Brain Thresholding:, "+brain_thresh)
+            out_lines.append("Smoothing:, "+smoothing)
+        self.width=width
+        self.height=len(out_lines)
+        return out_lines
     def explode_parsed(self, parsed_data, ):
         if self.type == self.FIRST_TYPE:
             self.analysis_name,self.output_path,self.in_file,self.design_matrix,self.ev_names,self.ev_paths,self.ev_convolves,self.ev_deriv,self.ev_temp,self.cope_names = parsed_data

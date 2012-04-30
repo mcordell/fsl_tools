@@ -33,18 +33,20 @@ class excel_results:
                 cope_dir=os.path.join(me_root_path,cope_name)
                 if os.path.isdir(cope_dir):
                     rendered_thresh=os.path.join(cope_dir,"rendered_thresh_zstat1.png")
-                    if os.path.isfile(rendered_thresh):
-                        img = Image.open(rendered_thresh)
-                        (width,height)=img.size
-                        new_width=int(width*self.scale_factor)
-                        new_height=int(height*self.scale_factor)
-                        resized=img.resize((new_width,new_height))
-                        resized.save("resized_temp.bmp")
-                        worksheet.insert_bitmap("resized_temp.bmp",vertical_start,horizontal_start)
-                        os.remove("resized_temp.bmp")
+                    cluster_max_path=os.path.join(cope_dir,"cluster_zstat1_std.txt")
+                    if os.path.isfile(rendered_thresh) and os.path.isfile(cluster_max_path):
+                        with file(cluster_max_path,'r') as cluster_file:
+                            cluster_lines= cluster_file.readlines()
+                        if len(cluster_lines) > 1:
+                            img = Image.open(rendered_thresh)
+                            (width,height)=img.size
+                            new_width=int(width*self.scale_factor)
+                            new_height=int(height*self.scale_factor)
+                            resized=img.resize((new_width,new_height))
+                            resized.save("resized_temp.bmp")
+                            worksheet.insert_bitmap("resized_temp.bmp",vertical_start,horizontal_start)
+                            os.remove("resized_temp.bmp")
                 horizontal_start+=self.horizontal_move
-
-        
 
 
     def main(self):
@@ -55,11 +57,16 @@ class excel_results:
         ws = wb.get_sheet(0)
         vert_start=2
         horz_start=0
+        organize_MEs=dict()
         for me in self.ME_paths:
             cope=self.determine_cope(me)
             if cope:
+                organize_MEs[cope]=me
+        for ind in range(1,len(organize_MEs)+1):
+                i=str(ind)
                 horz_start=0
-                name=self.lower_level_names[cope]
+                name=self.lower_level_names[i]
+                me=organize_MEs[i]
                 self.write_row(name,vert_start,horz_start,me,ws)
                 vert_start+=self.vertical_move
         wb.save(self.excel_outpath)
