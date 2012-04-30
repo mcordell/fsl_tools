@@ -78,10 +78,10 @@ def main():
             height_of_all_lines=preproc_fsf.height
     FE_fsf=fsf_file(os.path.join(FE_folder,'design.fsf'))
     if FE_fsf.height > height_of_all_lines:
-        height_of_all_lines=preproc_fsf.height
+        height_of_all_lines=FE_fsf.height
     ME_fsf=fsf_file(os.path.join(ME_folders[0],'design.fsf'))
     if ME_fsf.height > height_of_all_lines:
-        height_of_all_lines=preproc_fsf.height
+        height_of_all_lines=FE_fsf.height
 
 
 
@@ -90,6 +90,7 @@ def main():
     first_lines=first_fsf.out_lines
     ME_lines=ME_fsf.out_lines
     out_lines=list()
+
     for index in range(0,height_of_all_lines):
         fullline=''
         if preproc_fsf:
@@ -124,10 +125,7 @@ def main():
         fullline+='\n'
         out_lines.append(fullline)
 
-    # Writing our configuration file to 'example.cfg'
-    with open('example.cfg', 'wb') as configfile:
-        config.write(configfile)
-
+    write_report(out_lines,out_path)
 
 if __name__ == "__main__":
     main()

@@ -72,7 +72,7 @@ class fsf_file:
         except:
             print "Could not open fsf"
 
-    def fill_matrix(self,def_lines, design_matrix, type):
+    def fill_matrix(self,def_lines, design_matrix, type, column_add):
         """Converts the cope lines/regressor lines into a more understandable matrix"""
         row=len(design_matrix)
         col=len(design_matrix[1])
@@ -88,10 +88,10 @@ class fsf_file:
             if type == self.FIRST_TYPE:
                 if sub_index % 2 != 0 and index < row:
                     sub_index=(sub_index+1)/2
-                    design_matrix[index][sub_index]=value
+                    design_matrix[index][sub_index+column_add]=value
             elif type == self.FE_TYPE:
                 if sub_index < col and index < row:
-                    design_matrix[index][sub_index]=value
+                    design_matrix[index][sub_index+column_add]=value
             elif type == 5:
                 design_matrix[sub_index][index]=value
         return design_matrix
@@ -159,15 +159,15 @@ class fsf_file:
                     width = 5
                 out_lines.append(",".join(line))
             out_lines.append(',')
-            out_lines.append('Contrasts:')
-            for ind in range(1,len(ev_names)+1):
-                i=str(ind)
-                line=[cope_names[i]]
-                out_lines.append(",".join(line))
-            out_lines.append(',')
+            #out_lines.append('Contrasts:')
+            #for ind in range(1,len(cope_names)+1):
+            #   i=str(ind)
+            #   line=[cope_names[i]]
+            #   out_lines.append(",".join(line))
+            #out_lines.append(',')
         if type == self.FIRST_TYPE or type == self.FE_TYPE:
-            out_lines.append('Design Matrix:')
-            design_matrix[0][0]=''
+            out_lines.append('Contrast Matrix:')
+            #design_matrix[0][0]=''
             len_matrix=len(design_matrix[0])
             if len_matrix > width:
                 width = len_matrix
@@ -348,15 +348,20 @@ class fsf_file:
                     ev_names[index]=name
     
         if type == self.FIRST_TYPE or type == self.FE_TYPE:
-            design_matrix=[['0' for col in range(len(ev_names)+1)] for row in range(len(cope_names)+1)]
-            design_matrix=self.fill_matrix(cope_def_lines,design_matrix,type)
-    
+            design_matrix=[['0' for col in range(len(ev_names)+2)] for row in range(len(cope_names)+1)]
+
+            design_matrix=self.fill_matrix(cope_def_lines,design_matrix,type,1)
             for i in range(1,len(cope_names)+1):
                 ind=str(i)
-                design_matrix[i][0]=cope_names[ind]
-            for i in range(1,len(ev_names)+1):
+                design_matrix[i][0]=ind
+            for i in range(1,len(cope_names)+1):
                 ind=str(i)
+                design_matrix[i][1]=cope_names[ind]
+            for i in range(2,len(ev_names)+2):
+                ind=str(i-1)
                 design_matrix[0][i]=ev_names[ind]
+            design_matrix[0][0]='Cope #'
+            design_matrix[0][1]='Cope Name'
         if type == self.PRE_TYPE:
             return analysis_name,output_path,tr,total_volumes,deleted,in_file,motion_correction,brain_thresh,smoothing
         elif type == self.FIRST_TYPE:
@@ -365,7 +370,7 @@ class fsf_file:
             return analysis_name,output_path,pvalue,zvalue,feat_paths,count
         elif type == self.FE_TYPE:
             regressor_matrix=[['0' for col in range(int(count)+1)] for row in range(len(ev_names)+1)]
-            self.fill_matrix(evg_lines,regressor_matrix,5)
+            self.fill_matrix(evg_lines,regressor_matrix,5, 0)
             for i in range(1,len(ev_names)+1):
                 ind=str(i)
                 regressor_matrix[i][0]=ev_names[ind]
