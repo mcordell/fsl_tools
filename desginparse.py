@@ -15,17 +15,21 @@ def fill_line(line,width):
     return line
 
 def main():
-    config = ConfigParser.RawConfigParser()
-    config.add_section('Section1')
-    config.set('Section1', 'int', '15')
-    config.set('Section1', 'bool', 'true')
-    config.set('Section1', 'float', '3.1415')
-    config.set('Section1', 'baz', 'fun')
-    config.set('Section1', 'bar', 'Python')
-    config.set('Section1', 'foo', '%(bar)s is %(baz)s!')
+    #Parse options
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-p', '--featpath')
+    parser.add_argument('-o', '--out')
+    #parser.add_argument('-t', '--type')
+    args=parser.parse_args()
+    feat_folder_path=args.featpath
+    #type=args.type
+    out_path=args.out
+
     FIRST_dir="\\\\192.168.2.181\MyFiles\TAF_fanal\PV\Ctrl\\x305\\r2"
     FE_dir='\\\\192.168.2.181\MyFiles\TAF_fanal\PV\FE2\\'
     ME_dir='\\\\192.168.2.181\MyFiles\TAF_fanal\PV\ME\\'
+
+
     analysis='a8_csf'
     first_list=os.listdir(os.path.join(FIRST_dir))
     first_folder=''
@@ -36,10 +40,6 @@ def main():
             if os.path.isdir(combined):
                 first_folder=combined
                 break
-
-
-
-
 
     FE_list=os.listdir(os.path.join(FE_dir))
     FE_folder=''
@@ -61,7 +61,6 @@ def main():
 
 
     height_of_all_lines=0
-                
     first_fsf=fsf_file(os.path.join(first_folder,'design.fsf'))
     if first_fsf.height > height_of_all_lines:
         height_of_all_lines=first_fsf.height
@@ -77,6 +76,8 @@ def main():
     if ME_fsf.height > height_of_all_lines:
         height_of_all_lines=preproc_fsf.height
 
+
+
     preproc_lines=preproc_fsf.out_lines
     FE_lines=FE_fsf.out_lines
     first_lines=first_fsf.out_lines
@@ -91,7 +92,6 @@ def main():
             else:
                 fullline+=fill_line('',preproc_fsf.width)
                 fullline+=' ,'
-
 
         if first_fsf:
             if index < len(first_lines):
@@ -117,27 +117,9 @@ def main():
         fullline+='\n'
         out_lines.append(fullline)
 
-
     # Writing our configuration file to 'example.cfg'
     with open('example.cfg', 'wb') as configfile:
         config.write(configfile)
-    #Parse options
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-p', '--featpath')
-    parser.add_argument('-o', '--out')
-    #parser.add_argument('-t', '--type')
-    args=parser.parse_args()
-    feat_folder_path=args.featpath
-    #type=args.type
-    out_path=args.out
-    write_report(out_lines,out_path)
-    #load design.fsf
-    design_file_path=os.path.join(feat_folder_path,"design.fsf")
-    #fsf_lines=load_file(design_file_path)
-    xxx=os.path.join(FIRST_dir)
-    y=os.listdir(xxx)
-
-
 
 
 if __name__ == "__main__":
