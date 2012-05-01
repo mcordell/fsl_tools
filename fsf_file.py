@@ -452,6 +452,7 @@ class fsf_file:
             out_lines.append('Name,Convolution,Add Temporal Derivative,Apply Temporal Filtering,Path')
             for ind in range(1,len(ev_names)+1):
                 i=str(ind)
+                #TODO fix for ppi
                 line=[ev_names[i],ev_convolves[i],ev_deriv[i],ev_temp[i],ev_paths[i]]
                 if width < 5:
                     width = 5
