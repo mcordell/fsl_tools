@@ -38,7 +38,7 @@ def main():
         FE_dir = config.get('Analysis Directories', 'fe_dir')
         ME_dir = config.get('Analysis Directories', 'me_dir')
 
-
+    #TODO Need checking that file exists
     first_list=os.listdir(os.path.join(first_level_dir))
     first_folder=''
     for folder in first_list:
@@ -75,11 +75,13 @@ def main():
     one_col.append(",\n")
     if first_fsf.height > height_of_all_lines:
         height_of_all_lines=first_fsf.height
-    if first_fsf.preproc:
+    if hasattr(first_fsf,'preproc'):
         preprocdir=os.path.join(first_level_dir,first_fsf.preproc)
         preproc_fsf=fsf_file((os.path.join(preprocdir,'design.fsf')))
         one_col.extend(preproc_fsf.one_col)
         one_col.append(",\n")
+        preproc_lines=preproc_fsf.out_lines
+
         if preproc_fsf.height > height_of_all_lines:
             height_of_all_lines=preproc_fsf.height
 
@@ -96,7 +98,7 @@ def main():
     one_col.append(",\n")
 
 
-    preproc_lines=preproc_fsf.out_lines
+
     FE_lines=FE_fsf.out_lines
     first_lines=first_fsf.out_lines
     ME_lines=ME_fsf.out_lines
@@ -104,7 +106,7 @@ def main():
 
     for index in range(0,height_of_all_lines):
         fullline=''
-        if preproc_fsf:
+        if hasattr(first_fsf,'preproc'):
             if index < len(preproc_lines):
                 fullline+=fill_line(preproc_lines[index],preproc_fsf.width)
                 fullline+=' ,'
