@@ -5,6 +5,7 @@ from PIL import Image
 
 class excel_results:
     def __init__(self, higher_level_names, lower_level_names, ME_paths, template_path, excel_outpath):
+        #TODO everything is done at intialization, need to put this in an another method
         self.higher_level_names=higher_level_names
         self.lower_level_names=lower_level_names
         self.ME_paths=ME_paths
@@ -14,8 +15,9 @@ class excel_results:
         self.vertical_move=27
         self.horizontal_move=8
 
-    def determine_cope(self,cope_name):
-        copenumber_match=re.search("cope\d+",cope_name)
+    def determine_cope(self,in_string):
+        """Helper function for determining a cope # from a give string "in_string" """
+        copenumber_match=re.search("cope\d+",in_string)
         if copenumber_match:
             number_match=re.search("\d+",copenumber_match.group(0))
             if number_match:
@@ -25,13 +27,18 @@ class excel_results:
 
 
     def write_row(self,row_name,vertical_start,horizontal_start,me_root_path,worksheet):
+        """ Writes a row in a given worksheet, searching though a me_root_path, using
+            the results images within that root directory.row_name is written above each image in the row
+            Row writing starts at horiztonal/vertical cell position within the worksheet. Horizontal position
+            moves with the self variable self.horiztonal move
+        """
         files_list=os.listdir(me_root_path)
-        worksheet.write(vertical_start-1,horizontal_start,row_name)
         for cope_name in files_list:
             copenumber_match=re.search("cope\d+",cope_name)
             if copenumber_match:
                 cope_dir=os.path.join(me_root_path,cope_name)
                 if os.path.isdir(cope_dir):
+                    worksheet.write(vertical_start-1,horizontal_start,row_name)
                     rendered_thresh=os.path.join(cope_dir,"rendered_thresh_zstat1.png")
                     cluster_max_path=os.path.join(cope_dir,"cluster_zstat1_std.txt")
                     if os.path.isfile(rendered_thresh) and os.path.isfile(cluster_max_path):
@@ -44,6 +51,7 @@ class excel_results:
                             new_height=int(height*self.scale_factor)
                             resized=img.resize((new_width,new_height))
                             resized.save("resized_temp.bmp")
+
                             worksheet.insert_bitmap("resized_temp.bmp",vertical_start,horizontal_start)
                             os.remove("resized_temp.bmp")
                 horizontal_start+=self.horizontal_move

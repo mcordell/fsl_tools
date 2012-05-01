@@ -42,7 +42,7 @@ def main():
     first_list=os.listdir(os.path.join(first_level_dir))
     first_folder=''
     for folder in first_list:
-        analysis_match=re.search(analysis, folder)
+        analysis_match=re.search(analysis+'.feat', folder)
         if analysis_match:
             combined=os.path.join(first_level_dir,folder)
             if os.path.isdir(combined):
@@ -52,7 +52,7 @@ def main():
     FE_list=os.listdir(os.path.join(FE_dir))
     FE_folder=''
     for folder in FE_list:
-        analysis_match=re.search(analysis, folder)
+        analysis_match=re.search(analysis+'.gfeat', folder)
         if analysis_match:
             combined=os.path.join(FE_dir,folder)
             if os.path.isdir(combined):
@@ -145,6 +145,7 @@ def main():
     write_report(new_one,out_path+"_one.csv")
 
     excel_output_path="/Users/Michael/Desktop/test.xls"
+
     #TODO need to figure out logic for not double FEs
     if excel_output_path:
         template_path="/Users/Michael/Desktop/template2.xls"
