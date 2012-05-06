@@ -72,8 +72,13 @@ class fsf_file:
         except:
             print "Could not open fsf"
 
-    def fill_matrix(self,def_lines, design_matrix, type, column_add):
+    def fill_matrix(self,def_lines, design_matrix, type, column_add, *real_copes):
         """Converts the cope lines/regressor lines into a more understandable matrix"""
+        #unpack tuple
+        if 'real_copes' in locals():
+            if real_copes:
+                print real_copes
+                real_copes=real_copes[0]
         row=len(design_matrix)
         col=len(design_matrix[1])
         for line in def_lines:
@@ -86,9 +91,11 @@ class fsf_file:
             sub_index=int(sub_match[1])
             value=self.get_fsf_value(line,match.end())
             if type == self.FIRST_TYPE:
-                if sub_index % 2 != 0 and index < row:
-                    sub_index=(sub_index+1)/2
-                    design_matrix[index][sub_index+column_add]=value
+                if 'real_copes' in locals():
+                    if str(sub_index) in real_copes:
+                        list_index=real_copes.index(str(sub_index))
+                        list_index+=1
+                        design_matrix[index][list_index+column_add]=value
             elif type == self.FE_TYPE:
                 if sub_index < col and index < row:
                     design_matrix[index][sub_index+column_add]=value
@@ -154,12 +161,6 @@ class fsf_file:
                 line=','+ev_names[i]
                 out_lines.append(line)
             out_lines.append(',')
-            #out_lines.append('Contrasts:')
-            #for ind in range(1,len(cope_names)+1):
-            #   i=str(ind)
-            #   line=[cope_names[i]]
-            #   out_lines.append(",".join(line))
-            #out_lines.append(',')
         if type == self.FIRST_TYPE or type == self.FE_TYPE:
             out_lines.append('Contrasts:')
             for ind in range(1,len(cope_names)+1):
@@ -204,8 +205,13 @@ class fsf_file:
             motion_correction=''
             smoothing=''
             deleted=''
+        if type == self.FE_TYPE:
+            first_example_dir=''
+        if type == self.ME_TYPE:
+            FE_example_dir=''
+
         for line in fsf_lines:
-        #regex matching
+            #regex matching
             #all
             output_match=re.search("set fmri\(outputdir\)",line)
             feat_file_match=re.search("feat_files\(\d+\)",line)
@@ -215,6 +221,7 @@ class fsf_file:
     
             if output_match:
                 output_path=self.get_fsf_value(line,output_match.end())
+                #TODO hardcoded stripping here, make flexible
                 if type == self.ME_TYPE:
                     run=re.search("ME",line)
                 elif type == self.FIRST_TYPE or type == self.PRE_TYPE:
@@ -242,13 +249,25 @@ class fsf_file:
                     value=self.get_fsf_value(line,feat_file_match.end())
                     in_file=self.strip_root(value)
                     preproc_match=re.search("preproc.*feat",value)
+                    #TODO inconsistent methodology here
                     if preproc_match:
                         self.preproc=value[preproc_match.start():preproc_match.end()]
                         print self.preproc
                 elif type == self.ME_TYPE or type == self.FE_TYPE:
                     value=self.get_fsf_value(line,feat_file_match.end())
                     index=self.get_fsf_indice(feat_file_match.group())
-                    feat_paths[index]=self.strip_fanal(line)
+                    stripped=self.strip_fanal(line)
+                    feat_paths[index]=stripped
+                    if (type == self.ME_TYPE and not FE_example_dir) or (type == self.FE_TYPE and not first_example_dir):
+                        set_match=re.search("set feat_files\(\d+\) \"",line)
+                        no_cope=line[set_match.end():len(line)]
+                        no_cope=no_cope.strip('\n')
+                        no_cope=no_cope.strip('\"')
+                        no_cope=self.strip_cope(no_cope)
+                        if type == self.ME_TYPE:
+                            FE_example_dir=no_cope
+                        else:
+                            first_example_dir=no_cope
 
             if type == self.PRE_TYPE:
                 tr_match=re.search("fmri\(tr\)", line)
@@ -339,8 +358,22 @@ class fsf_file:
     
         if type == self.FIRST_TYPE or type == self.FE_TYPE:
             design_matrix=[['0' for col in range(len(ev_names)+2)] for row in range(len(cope_names)+1)]
+            if 'ev_temp' in locals():
+                real_copes=list()
+                index_cope=1
+                real_copes.append(str(index_cope))
+                for i in range(1,len(ev_temp)+1):
+                    ind=str(i)
+                    if ev_temp[ind] == 'Y':
+                        index_cope += 2
+                    else:
+                        index_cope += 1
+                    real_copes.append(str(index_cope))
+                real_copes.pop()
+                design_matrix=self.fill_matrix(cope_def_lines,design_matrix,type,1,real_copes)
+            else:
+                design_matrix=self.fill_matrix(cope_def_lines,design_matrix,type,1)
 
-            design_matrix=self.fill_matrix(cope_def_lines,design_matrix,type,1)
             for i in range(1,len(cope_names)+1):
                 ind=str(i)
                 design_matrix[i][0]=ind
@@ -387,7 +420,7 @@ class fsf_file:
             out=line
         return out
     def strip_cope(self,line):
-        cope=re.search("_cope",line)
+        cope=re.search("_*cope",line)
         if cope:
             out=line[0:cope.start()]
             out=out.strip()
@@ -447,23 +480,27 @@ class fsf_file:
                 out_lines.append(row)
             out_lines.append(',')
 
+
         if type == self.FIRST_TYPE:
             out_lines.append('Regressors:')
             out_lines.append('Name,Convolution,Add Temporal Derivative,Apply Temporal Filtering,Path')
+
             for ind in range(1,len(ev_names)+1):
                 i=str(ind)
-                #TODO fix for ppi
-                line=[ev_names[i],ev_convolves[i],ev_deriv[i],ev_temp[i],ev_paths[i]]
+                try:
+                    line=[ev_names[i],ev_convolves[i],ev_deriv[i],ev_temp[i],ev_paths[i]]
+                except:
+                    print "malformed ev?"
+                    print ev_names
+                    print ev_convolves
+                    print ev_deriv
+                    print ev_temp
+                    print ev_paths
+
                 if width < 5:
                     width = 5
                 out_lines.append(",".join(line))
             out_lines.append(',')
-            #out_lines.append('Contrasts:')
-            #for ind in range(1,len(cope_names)+1):
-            #   i=str(ind)
-            #   line=[cope_names[i]]
-            #   out_lines.append(",".join(line))
-            #out_lines.append(',')
         if type == self.FIRST_TYPE or type == self.FE_TYPE:
             out_lines.append('Contrast Matrix:')
             #design_matrix[0][0]=''
@@ -484,7 +521,7 @@ class fsf_file:
         self.width=width
         self.height=len(out_lines)
         return out_lines
-    def explode_parsed(self, parsed_data, ):
+    def explode_parsed(self, parsed_data ):
         if self.type == self.FIRST_TYPE:
             self.analysis_name,self.output_path,self.in_file,self.design_matrix,self.ev_names,self.ev_paths,self.ev_convolves,self.ev_deriv,self.ev_temp,self.cope_names = parsed_data
         elif self.type == self.ME_TYPE:

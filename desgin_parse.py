@@ -13,6 +13,45 @@ def fill_line(line,width):
         line+=','
     return line
 
+def combine_for_csv(first_fsf,height_of_all_lines=0,preproc_fsf=0,FE_fsf=0,ME_fsf=0):
+    if height_of_all_lines == 0:
+        height_of_all_lines=first_fsf.height
+    out_lines=list()
+    for index in range(0,height_of_all_lines):
+        fullline=''
+        if hasattr(first_fsf,'preproc'):
+            if index < len(preproc_fsf.out_lines):
+                fullline+=fill_line(preproc_fsf.out_lines[index],preproc_fsf.width)
+                fullline+=' ,'
+            else:
+                fullline+=fill_line('',preproc_fsf.width)
+                fullline+=' ,'
+
+        if first_fsf:
+            if index < len(first_fsf.out_lines):
+                fullline+=fill_line(first_fsf.out_lines[index],first_fsf.width)
+                fullline+=' ,'
+            else:
+                fullline+=fill_line('',first_fsf.width)
+                fullline+=' ,'
+        if FE_fsf:
+            if index < len(FE_fsf.out_lines):
+                fullline+=fill_line(FE_fsf.out_lines[index],FE_fsf.width)
+                fullline+=' ,'
+            else:
+                fullline+=fill_line('',FE_fsf.width)
+                fullline+=' ,'
+        if ME_fsf:
+            if index < len(ME_fsf.out_lines):
+                fullline+=fill_line(ME_fsf.out_lines[index],ME_fsf.width)
+                fullline+=' ,'
+            else:
+                fullline+=fill_line('',ME_fsf.width)
+                fullline+=' ,'
+        fullline+='\n'
+        out_lines.append(fullline)
+    return out_lines
+
 def main():
     config_file_path="example.cfg"
     #Parse options
@@ -38,110 +77,86 @@ def main():
         FE_dir = config.get('Analysis Directories', 'fe_dir')
         ME_dir = config.get('Analysis Directories', 'me_dir')
 
-    #TODO Need checking that file exists
-    first_list=os.listdir(os.path.join(first_level_dir))
-    first_folder=''
-    for folder in first_list:
-        analysis_match=re.search(analysis+'.feat', folder)
-        if analysis_match:
-            combined=os.path.join(first_level_dir,folder)
-            if os.path.isdir(combined):
-                first_folder=combined
-                break
-
-    FE_list=os.listdir(os.path.join(FE_dir))
-    FE_folder=''
-    for folder in FE_list:
-        analysis_match=re.search(analysis+'.gfeat', folder)
-        if analysis_match:
-            combined=os.path.join(FE_dir,folder)
-            if os.path.isdir(combined):
-                FE_folder=combined
-                break
-    ME_list=os.listdir(os.path.join(ME_dir))
-    ME_folders=list()
-    for folder in ME_list:
-        analysis_match=re.search(analysis+"_cope", folder)
-        if analysis_match:
-            combined=os.path.join(ME_dir,folder)
-            if os.path.isdir(combined):
-                ME_folders.append(combined)
-
-    one_col=list()
     height_of_all_lines=0
 
-    first_fsf=fsf_file(os.path.join(first_folder,'design.fsf'))
-    one_col.extend(first_fsf.one_col)
-    one_col.append(",\n")
-    if first_fsf.height > height_of_all_lines:
-        height_of_all_lines=first_fsf.height
-    if hasattr(first_fsf,'preproc'):
-        preprocdir=os.path.join(first_level_dir,first_fsf.preproc)
-        preproc_fsf=fsf_file((os.path.join(preprocdir,'design.fsf')))
-        one_col.extend(preproc_fsf.one_col)
-        one_col.append(",\n")
-        preproc_lines=preproc_fsf.out_lines
+    if analysis:
+        ME_list=os.listdir(os.path.join(ME_dir))
+        ME_folders=list()
+        for folder in ME_list:
+            analysis_match=re.search(analysis+"_cope", folder)
+            if analysis_match:
+                combined=os.path.join(ME_dir,folder)
+                if os.path.isdir(combined):
+                    ME_folders.append(combined)
 
-        if preproc_fsf.height > height_of_all_lines:
-            height_of_all_lines=preproc_fsf.height
+        first_list=os.listdir(os.path.join(first_level_dir))
+        first_folder=''
+        for folder in first_list:
+            analysis_match=re.search(analysis+'.feat', folder)
+            if analysis_match:
+                combined=os.path.join(first_level_dir,folder)
+                if os.path.isdir(combined):
+                    first_folder=combined
+                    break
 
-    FE_fsf=fsf_file(os.path.join(FE_folder,'design.fsf'))
-    one_col.append(",\n")
-    if FE_fsf.height > height_of_all_lines:
-        height_of_all_lines=FE_fsf.height
-    one_col.extend(FE_fsf.one_col)
-    one_col.append(",\n")
-    ME_fsf=fsf_file(os.path.join(ME_folders[0],'design.fsf'))
-    if ME_fsf.height > height_of_all_lines:
-        height_of_all_lines=FE_fsf.height
-    one_col.extend(ME_fsf.one_col)
-    one_col.append(",\n")
+        FE_list=os.listdir(os.path.join(FE_dir))
+        FE_folder=''
+        for folder in FE_list:
+            analysis_match=re.search(analysis+'.gfeat', folder)
+            if analysis_match:
+                combined=os.path.join(FE_dir,folder)
+                if os.path.isdir(combined):
+                    FE_folder=combined
+                    break
+                    
+        one_col=list()
 
 
-
-    FE_lines=FE_fsf.out_lines
-    first_lines=first_fsf.out_lines
-    ME_lines=ME_fsf.out_lines
-    out_lines=list()
-
-    for index in range(0,height_of_all_lines):
-        fullline=''
-        if hasattr(first_fsf,'preproc'):
-            if index < len(preproc_lines):
-                fullline+=fill_line(preproc_lines[index],preproc_fsf.width)
-                fullline+=' ,'
-            else:
-                fullline+=fill_line('',preproc_fsf.width)
-                fullline+=' ,'
-
+        first_fsf=fsf_file(os.path.join(first_folder,'design.fsf'))
         if first_fsf:
-            if index < len(first_lines):
-                fullline+=fill_line(first_lines[index],first_fsf.width)
-                fullline+=' ,'
-            else:
-                fullline+=fill_line('',first_fsf.width)
-                fullline+=' ,'
+            one_col.extend(first_fsf.one_col)
+            one_col.append(",\n")
+            if first_fsf.height > height_of_all_lines:
+                height_of_all_lines=first_fsf.height
+            if hasattr(first_fsf,'preproc'):
+                preprocdir=os.path.join(first_level_dir,first_fsf.preproc)
+                preproc_fsf=fsf_file((os.path.join(preprocdir,'design.fsf')))
+                one_col.extend(preproc_fsf.one_col)
+                one_col.append(",\n")
+                preproc_lines=preproc_fsf.out_lines
+
+                if preproc_fsf.height > height_of_all_lines:
+                    height_of_all_lines=preproc_fsf.height
+        else:
+            print "No first level loaded, data will not be included in output"
+
+        FE_fsf=fsf_file(os.path.join(FE_folder,'design.fsf'))
         if FE_fsf:
-                if index < len(FE_lines):
-                    fullline+=fill_line(FE_lines[index],FE_fsf.width)
-                    fullline+=' ,'
-                else:
-                    fullline+=fill_line('',FE_fsf.width)
-                    fullline+=' ,'
+
+            one_col.append(",\n")
+            if FE_fsf.height > height_of_all_lines:
+                height_of_all_lines=FE_fsf.height
+            one_col.extend(FE_fsf.one_col)
+            one_col.append(",\n")
+        else:
+           print "No fixed effects loaded, data will not be included in output"
+
+        ME_fsf=fsf_file(os.path.join(ME_folders[0],'design.fsf'))
         if ME_fsf:
-            if index < len(ME_lines):
-                fullline+=fill_line(ME_lines[index],ME_fsf.width)
-                fullline+=' ,'
-            else:
-                fullline+=fill_line('',ME_fsf.width)
-                fullline+=' ,'
-        fullline+='\n'
-        out_lines.append(fullline)
+            if ME_fsf.height > height_of_all_lines:
+                height_of_all_lines=FE_fsf.height
+            one_col.extend(ME_fsf.one_col)
+            one_col.append(",\n")
+        else:
+            print "No Mixed effects loaded, data will not be included in output"
+
+    out_lines=combine_for_csv(first_fsf,height_of_all_lines,preproc_fsf,FE_fsf,ME_fsf)
+
+
 
     new_one=list()
     for row in one_col:
         new_one.append(row+'\n')
-
 
     write_report(out_lines,out_path+".csv")
     write_report(new_one,out_path+"_one.csv")
