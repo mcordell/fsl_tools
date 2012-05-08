@@ -108,9 +108,9 @@ class fsf_file:
         if type == self.FIRST_TYPE:
             analysis_name,output_path,in_file,design_matrix,ev_names,ev_paths,ev_convolves,ev_deriv,ev_temp,cope_names= parsed_data
         elif type == self.ME_TYPE:
-            analysis_name,output_path,pvalue,zvalue,feat_paths,count = parsed_data
+            analysis_name,output_path,pvalue,zvalue,feat_paths,count,FE_example_dir = parsed_data
         elif type == self.FE_TYPE:
-            analysis_name,output_path,feat_paths,count,design_matrix,regressor_matrix,ev_names,cope_names=parsed_data
+            analysis_name,output_path,feat_paths,count,design_matrix,regressor_matrix,ev_names,cope_names,first_example_dir=parsed_data
         elif type == self.PRE_TYPE:
             analysis_name,output_path,tr,total_volumes,deleted,in_file,motion_correction,brain_thresh,smoothing=parsed_data
 
@@ -390,7 +390,7 @@ class fsf_file:
         elif type == self.FIRST_TYPE:
             return analysis_name,output_path,in_file,design_matrix,ev_names,ev_paths,ev_convolves,ev_deriv,ev_temp,cope_names
         elif type == self.ME_TYPE:
-            return analysis_name,output_path,pvalue,zvalue,feat_paths,count
+            return analysis_name,output_path,pvalue,zvalue,feat_paths,count, FE_example_dir
         elif type == self.FE_TYPE:
             regressor_matrix=[['0' for col in range(int(count)+1)] for row in range(len(ev_names)+1)]
             self.fill_matrix(evg_lines,regressor_matrix,5, 0)
@@ -400,7 +400,7 @@ class fsf_file:
             for i in range(1,int(count)+1):
                 ind=str(i)
                 regressor_matrix[0][i]=ind
-            return analysis_name,output_path,feat_paths,count,design_matrix,regressor_matrix,ev_names,cope_names
+            return analysis_name,output_path,feat_paths,count,design_matrix,regressor_matrix,ev_names,cope_names,first_example_dir
 
     def strip_root(self,line):
         run=re.search("r\d\/",line)
@@ -411,6 +411,7 @@ class fsf_file:
         else:
             out=line
         return out
+
     def strip_fanal(self,line):
         run=re.search("TAF_fanal\/",line)
         if run:
@@ -432,9 +433,9 @@ class fsf_file:
         if type == self.FIRST_TYPE:
             analysis_name,output_path,in_file,design_matrix,ev_names,ev_paths,ev_convolves,ev_deriv,ev_temp,cope_names= parsed_data
         elif type == self.ME_TYPE:
-            analysis_name,output_path,pvalue,zvalue,feat_paths,count = parsed_data
+            analysis_name,output_path,pvalue,zvalue,feat_paths,count,FE_example_dir = parsed_data
         elif type == self.FE_TYPE:
-            analysis_name,output_path,feat_paths,count,design_matrix,regressor_matrix,ev_names,cope_names=parsed_data
+            analysis_name,output_path,feat_paths,count,design_matrix,regressor_matrix,ev_names,cope_names,first_example_dir=parsed_data
         elif type == self.PRE_TYPE:
             analysis_name,output_path,tr,total_volumes,deleted,in_file,motion_correction,brain_thresh,smoothing=parsed_data
 
@@ -525,8 +526,8 @@ class fsf_file:
         if self.type == self.FIRST_TYPE:
             self.analysis_name,self.output_path,self.in_file,self.design_matrix,self.ev_names,self.ev_paths,self.ev_convolves,self.ev_deriv,self.ev_temp,self.cope_names = parsed_data
         elif self.type == self.ME_TYPE:
-            self.analysis_name,self.output_path,self.pvalue,self.zvalue,self.feat_paths,self.count = parsed_data
+            self.analysis_name,self.output_path,self.pvalue,self.zvalue,self.feat_paths,self.count, self.FE_example_dir = parsed_data
         elif self.type == self.FE_TYPE:
-            self.analysis_name,self.output_path,self.feat_paths,self.count,self.design_matrix,self.regressor_matrix,self.ev_names,self.cope_names=parsed_data
+            self.analysis_name,self.output_path,self.feat_paths,self.count,self.design_matrix,self.regressor_matrix,self.ev_names,self.cope_names,self.first_example_dir=parsed_data
         elif self.type == self.PRE_TYPE:
             self.analysis_name,self.output_path,self.tr,self.total_volumes,self.deleted,self.in_file,self.motion_correction,self.brain_thresh,self.smoothing=parsed_data
