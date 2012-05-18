@@ -73,7 +73,10 @@ class excel_results:
         for ind in range(1,len(organize_MEs)+1):
                 i=str(ind)
                 horz_start=0
-                name=self.lower_level_names[i]
+                try:
+                    name=self.lower_level_names[i]
+                except:
+                    "Higher level Mixed effects not found in lower level copes. Mismatch?"
                 me=organize_MEs[i]
                 self.write_row(name,vert_start,horz_start,me,ws)
                 vert_start+=self.vertical_move

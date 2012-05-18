@@ -113,7 +113,7 @@ def main():
 
 
         first_fsf=fsf_file(os.path.join(first_folder,'design.fsf'))
-        if first_fsf:
+        if first_fsf.fsf_lines:
             one_col.extend(first_fsf.one_col)
             one_col.append(",\n")
             if first_fsf.height > height_of_all_lines:
@@ -131,8 +131,7 @@ def main():
             print "No first level loaded, data will not be included in output"
 
         FE_fsf=fsf_file(os.path.join(FE_folder,'design.fsf'))
-        if FE_fsf:
-
+        if FE_fsf.fsf_lines:
             one_col.append(",\n")
             if FE_fsf.height > height_of_all_lines:
                 height_of_all_lines=FE_fsf.height
@@ -161,11 +160,11 @@ def main():
     write_report(out_lines,out_path+".csv")
     write_report(new_one,out_path+"_one.csv")
 
-    excel_output_path="/Users/Michael/Desktop/test.xls"
+    excel_output_path=out_path+'.xls'
 
     #TODO need to figure out logic for not double FEs
     if excel_output_path:
-        template_path="/Users/Michael/Desktop/template2.xls"
+        template_path="template2.xls"
         excel=excel_results(FE_fsf.cope_names,first_fsf.cope_names, ME_folders, template_path,excel_output_path)
         excel.main()
 

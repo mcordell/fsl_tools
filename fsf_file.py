@@ -12,11 +12,12 @@ class fsf_file:
         self.PRE_TYPE=0
         self.FilePath=path
         self.fsf_lines=self.load_file()
-        self.type=self.get_type()
-        self.parsed=self.parse_design_file(self.fsf_lines,self.type)
-        self.out_lines=self.parsed_to_csv_lines(self.parsed,self.type)
-        self.explode_parsed(self.parsed)
-        self.one_col=self.get_one_column(self.parsed,self.type)
+        if self.fsf_lines:
+            self.type=self.get_type()
+            self.parsed=self.parse_design_file(self.fsf_lines,self.type)
+            self.out_lines=self.parsed_to_csv_lines(self.parsed,self.type)
+            self.explode_parsed(self.parsed)
+            self.one_col=self.get_one_column(self.parsed,self.type)
 
     def get_fsf_value(self,fsf_line, end):
         """ return a value from an fsf line
@@ -29,7 +30,7 @@ class fsf_file:
         value=value.strip()
         value=value.replace('"','')
         return value
-    
+
     def get_fsf_indice(self,fsf_variable_def):
         """ return a the variable indice from an fsf line variable declaration
             fsf variables are defined as set fmri(***variable type***#indice)
@@ -228,7 +229,8 @@ class fsf_file:
                     run=re.search("r\d\/",line)
                 elif type == self.FE_TYPE:
                     run=re.search("FE\d*",line)
-                analysis_name=self.get_fsf_value(line,run.end())
+                if run:
+                    analysis_name=self.get_fsf_value(line,run.end())
                 if type == self.ME_TYPE:
                     analysis_name=self.strip_cope(analysis_name)
     
