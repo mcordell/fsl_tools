@@ -40,7 +40,7 @@ class fsf_file:
         return match.group()
 
     def get_type(self):
-        #determine fsf type
+        #determine fsf file type
         higher=0
         for line in self.fsf_lines:
             match=re.search("set fmri\(analysis\)", line)
@@ -105,6 +105,8 @@ class fsf_file:
         return design_matrix
 
     def get_one_column(self,parsed_data,type):
+        """ Format parsed data as a single column for a csv
+        """
         width = 2
         if type == self.FIRST_TYPE:
             analysis_name,output_path,in_file,design_matrix,ev_names,ev_paths,ev_convolves,ev_deriv,ev_temp,cope_names= parsed_data
@@ -179,6 +181,9 @@ class fsf_file:
         return out_lines
 
     def parse_design_file(self,fsf_lines, type):
+        """
+            Parses design file information and return information in parsed variables that can be used by the csv methods
+        """
         analysis_name=''
         output_path=''
         zvalue=''
@@ -431,6 +436,9 @@ class fsf_file:
             out=line
         return out
     def parsed_to_csv_lines(self,parsed_data,type):
+        """
+            format parsed data as a single csv sheet
+        """
         width = 2
         if type == self.FIRST_TYPE:
             analysis_name,output_path,in_file,design_matrix,ev_names,ev_paths,ev_convolves,ev_deriv,ev_temp,cope_names= parsed_data
