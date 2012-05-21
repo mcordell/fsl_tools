@@ -529,6 +529,7 @@ class fsf_file:
         self.width=width
         self.height=len(out_lines)
         return out_lines
+
     def explode_parsed(self, parsed_data ):
         if self.type == self.FIRST_TYPE:
             self.analysis_name,self.output_path,self.in_file,self.design_matrix,self.ev_names,self.ev_paths,self.ev_convolves,self.ev_deriv,self.ev_temp,self.cope_names = parsed_data
