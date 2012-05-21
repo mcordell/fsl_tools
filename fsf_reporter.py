@@ -4,16 +4,27 @@ from fsf_file import fsf_file
 from excel_results import excel_results
 
 def write_report(lines,path):
+    """
+        Helper text write function
+    """
     with file(path, 'w') as out:
         return out.writelines(lines)
 
 def fill_line(line,width):
+    """ helper function for making a csv line have a fixed number (width) of commas
+        this is helpful for evening out all of the csv lines in a set to have equal
+        "width"
+    """
     comma_count=line.count(',')
     for i in range(0,(width-comma_count)):
         line+=','
     return line
 
 def combine_for_csv(first_fsf,height_of_all_lines=0,preproc_fsf=0,FE_fsf=0,ME_fsf=0):
+    """ given atleast one fsf file, format fsf_file.out_lines into a csv file
+        if more than one fsf_file is given. They will be organized according to stage
+        preproc, first level, fixed effects, mixed effects
+    """
     if height_of_all_lines == 0:
         height_of_all_lines=first_fsf.height
     out_lines=list()
@@ -79,6 +90,7 @@ def main():
 
     height_of_all_lines=0
 
+    #find the location of the feat folders within the directories from the config file
     if analysis:
         ME_list=os.listdir(os.path.join(ME_dir))
         ME_folders=list()
@@ -111,7 +123,7 @@ def main():
                     
         one_col=list()
 
-
+        #load fsf files using fsf_file class
         first_fsf=fsf_file(os.path.join(first_folder,'design.fsf'))
         if first_fsf.fsf_lines:
             one_col.extend(first_fsf.one_col)
@@ -148,7 +160,7 @@ def main():
             one_col.append(",\n")
         else:
             print "No Mixed effects loaded, data will not be included in output"
-
+    
     out_lines=combine_for_csv(first_fsf,height_of_all_lines,preproc_fsf,FE_fsf,ME_fsf)
 
 
@@ -164,6 +176,7 @@ def main():
 
     #TODO need to figure out logic for not double FEs
     if excel_output_path:
+        #TODO need to make template file more flexible
         template_path="template2.xls"
         excel=excel_results(FE_fsf.cope_names,first_fsf.cope_names, ME_folders, template_path,excel_output_path)
         excel.main()

@@ -493,12 +493,9 @@ class fsf_file:
                 try:
                     line=[ev_names[i],ev_convolves[i],ev_deriv[i],ev_temp[i],ev_paths[i]]
                 except:
+                    line=[ev_names[i],'','','','']
                     print "malformed ev?"
-                    print ev_names
-                    print ev_convolves
-                    print ev_deriv
-                    print ev_temp
-                    print ev_paths
+
 
                 if width < 5:
                     width = 5
