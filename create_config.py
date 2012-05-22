@@ -7,6 +7,14 @@ def main():
     config.set('Analysis Directories', 'first_level_dir', "/Volumes/storage/TAF_fanal/FS/Ctrl/x305/r2")
     config.set('Analysis Directories', 'FE_dir', "/Volumes/storage/TAF_fanal/FS/FE2")
     config.set('Analysis Directories', 'ME_dir', '/Volumes/storage/TAF_fanal/FS/ME')
+
+    config.add_section('run_to_atlas')
+    config.set('run_to_atlas','reg_name','qreg_8s')
+    config.set('run_to_atlas','structure','experiment_root/study_code/condition/subject/run/')
+    config.set('run_to_atlas','reg_path','experiment_root/study_code/condition/subject/run/reg_name')
+    config.set('run_to_atlas','study_code','PV')
+    config.set('run_to_atlas','experiment_root',"/mnt/Storage/TAF_fanal/")
+    config.set("run_to_atlas",'standard_brain',"/usr/share/fsl/data/standard/MNI152_T1_2mm_brain")
     with open('example.cfg', 'wb') as configfile:
         config.write(configfile)
 
