@@ -1,5 +1,6 @@
 __author__ = 'Michael'
 import re
+from utils import parse_to_dict
 
 class fsf_file:
 
@@ -10,8 +11,12 @@ class fsf_file:
         self.ME_TYPE=3
         self.FIRST_TYPE=1
         self.PRE_TYPE=0
+
         self.FilePath=path
         self.fsf_lines=self.load_file()
+        self.values_dict=parse_to_dict(self.fsf_lines)
+        self.type=self.get_type()
+
         if self.fsf_lines:
             self.type=self.get_type()
             self.parsed=self.parse_design_file(self.fsf_lines,self.type)
@@ -19,50 +24,30 @@ class fsf_file:
             self.explode_parsed(self.parsed)
             self.one_col=self.get_one_column(self.parsed,self.type)
 
-    def get_fsf_value(self,fsf_line, end):
-        """ return a value from an fsf line
-            fsf lines have a perdictable structure, where vaiable is defined and then value follows
-            this function returns of a clean copy of the variable in supplied fsf_line, where value is everything in the
-            line after the supplied variable end. newline characters, " , and leading spaces are stripped
-        """
-        value=fsf_line[end:len(fsf_line)]
-        value=value.strip("\n")
-        value=value.strip()
-        value=value.replace('"','')
-        return value
 
-    def get_fsf_indice(self,fsf_variable_def):
-        """ return a the variable indice from an fsf line variable declaration
-            fsf variables are defined as set fmri(***variable type***#indice)
-            this function returns the indice of the supplied variable definition
-        """
-        match=re.search('\d+', fsf_variable_def)
-        return match.group()
+    def get_value(self,value_id):
+        packaged_value="fmri("+value_id+")"
+        if self.values_dict.has_key(value_id):
+            return self.values_dict[value_id]
+        elif self.values_dict.has_key(packaged_value):
+            return self.values_dict[packaged_value]
+        else:
+            return None
 
     def get_type(self):
         #determine fsf file type
-        higher=0
-        for line in self.fsf_lines:
-            match=re.search("set fmri\(analysis\)", line)
-            high=re.search("set fmri\(level\)", line)
-            higher_type=re.search("\(mixed_yn\)", line)
-            if higher and higher_type:
-                value=self.get_fsf_value(line,higher_type.end())
-                if value == "0" or value == "2" or value == "1":
-                    type=self.ME_TYPE
-                elif value == "3":
-                    type=self.FE_TYPE
-            if high:
-                value=self.get_fsf_value(line,high.end())
-                if value != "1":
-                    higher=1
-            if match:
-                temp_type=self.get_fsf_value(line,match.end())
-                if temp_type == "6" or temp_type == "7":
-                    type=self.FIRST_TYPE
-                elif temp_type == "1":
-                    type=self.PRE_TYPE
-
+        high_value=self.get_value("level")
+        analysis_type=self.get_value("analysis")
+        if (high_value != "1"):
+            higher_level_type=self.get_value("mixed_yn")
+            if higher_level_type == "0" or higher_level_type == "2" or higher_level_type == "1":
+                type=self.ME_TYPE
+            elif higher_level_type == "3":
+                type=self.FE_TYPE
+        elif (analysis_type == "6" or analysis_type == "7"):
+            type=self.FIRST_TYPE
+        elif (analysis_type == "1"):
+            type=self.PRE_TYPE
         return type
 
     def load_file(self):
@@ -72,6 +57,12 @@ class fsf_file:
                 return original.readlines()
         except:
             print "Could not open fsf"
+
+
+
+
+
+
 
     def fill_matrix(self,def_lines, design_matrix, type, column_add, *real_copes):
         """Converts the cope lines/regressor lines into a more understandable matrix"""
@@ -180,6 +171,10 @@ class fsf_file:
            out_lines.append("Smoothing:, "+smoothing)
         return out_lines
 
+
+
+
+
     def parse_design_file(self,fsf_lines, type):
         """
             Parses design file information and return information in parsed variables that can be used by the csv methods
@@ -263,7 +258,7 @@ class fsf_file:
                 elif type == self.ME_TYPE or type == self.FE_TYPE:
                     value=self.get_fsf_value(line,feat_file_match.end())
                     index=self.get_fsf_indice(feat_file_match.group())
-                    stripped=self.strip_fanal(line)
+                    stripped=self.strip_experiment_root(line)
                     feat_paths[index]=stripped
                     if (type == self.ME_TYPE and not FE_example_dir) or (type == self.FE_TYPE and not first_example_dir):
                         set_match=re.search("set feat_files\(\d+\) \"",line)
@@ -419,7 +414,7 @@ class fsf_file:
             out=line
         return out
 
-    def strip_fanal(self,line):
+    def strip_experiment_root(self,line):
         run=re.search("TAF_fanal\/",line)
         if run:
             out=self.get_fsf_value(line,run.end())
@@ -427,6 +422,7 @@ class fsf_file:
         else:
             out=line
         return out
+
     def strip_cope(self,line):
         cope=re.search("_*cope",line)
         if cope:
@@ -435,6 +431,7 @@ class fsf_file:
         else:
             out=line
         return out
+
     def parsed_to_csv_lines(self,parsed_data,type):
         """
             format parsed data as a single csv sheet
