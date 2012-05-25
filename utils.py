@@ -2,6 +2,17 @@ __author__ = 'michael'
 import re, subprocess, xlwt, operator
 from xlwt import easyxf
 
+def parse_to_dict(fsf_lines):
+    fsf_dict=dict()
+    for line in fsf_lines:
+        line=line.strip()
+        if len(line) > 0 and line[0] != "#":
+            print line
+            set_line=re.search("set [^ ]* [^s]*",line.strip())
+            if set_line:
+                split_line=line.split(" ")
+                fsf_dict[split_line[1]]=split_line[2]
+    return fsf_dict
 
 def add_to_dict(atlas, dictionary):
     atlas_percentages = dict()
@@ -115,3 +126,19 @@ def sort_atlas_locations(atlases):
         sorted_locations=sorted(atlas_dict.iteritems(),key=operator.itemgetter(1),reverse=True)
         sorted_atlases[atlas]=sorted_locations
     return sorted_atlases
+def first_to_csv(fsf_file):
+    print x
+def fe_to_csv(fsf_file):
+    print x
+
+def fsf_to_csv(fsf_file):
+    if fsf_file.type == fsf_file.FIRST_TYPE:
+        first_to_csv(fsf_file)
+    elif fsf_file.type == fsf_file.FE_TYPE:
+        fe_to_csv(fsf_file)
+    elif fsf_file.type == fsf_file.ME_TYPE:
+        me_to_csv(fsf_file)
+    elif fsf_file.type == fsf_file.PRE_TYPE:
+        pre_to_csv(fsf_file)
+    else:
+        return None
