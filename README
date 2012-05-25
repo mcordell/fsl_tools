@@ -19,5 +19,6 @@ Dependencies by script:
 
 Supplementary files:
     fsf_file.py - class for parsing and opening design.fsfs 
+    utils.py - supplementary file that holds helper functions for many of the above scripts
 
 
