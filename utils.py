@@ -1,5 +1,5 @@
 __author__ = 'michael'
-import re, subprocess, xlwt, operator
+import re, subprocess, operator
 from xlwt import easyxf
 
 def parse_to_dict(fsf_lines):
@@ -7,11 +7,11 @@ def parse_to_dict(fsf_lines):
     for line in fsf_lines:
         line=line.strip()
         if len(line) > 0 and line[0] != "#":
-            print line
             set_line=re.search("set [^ ]* [^s]*",line.strip())
             if set_line:
                 split_line=line.split(" ")
-                fsf_dict[split_line[1]]=split_line[2]
+                cleaned=split_line[2].strip('\"')
+                fsf_dict[split_line[1]]=cleaned
     return fsf_dict
 
 def add_to_dict(atlas, dictionary):
@@ -73,7 +73,6 @@ def prep_worksheet(ws, sorted_atlases):
     for atlas in sorted_atlases:
         points=dict()
         for atlas_tuple in sorted_atlases[atlas]:
-            print atlas_tuple
             key, value = atlas_tuple
             ws.write(1, atlas_loc_pointer, key)
             points[key]=atlas_loc_pointer
@@ -126,10 +125,104 @@ def sort_atlas_locations(atlases):
         sorted_locations=sorted(atlas_dict.iteritems(),key=operator.itemgetter(1),reverse=True)
         sorted_atlases[atlas]=sorted_locations
     return sorted_atlases
+def pre_to_csv(fsf_file):
+    width=2
+    out_lines=list()
+    out_lines.append('Preproc');
+    out_lines.append("Analysis Name:,"+fsf_file.analysis_name)
+    out_lines.append("Input file:,"+fsf_file.input_file);
+    out_lines.append(',')
+    out_lines.append("TR:, "+fsf_file.tr)
+    out_lines.append("Total Volumes:, "+fsf_file.number_volumes)
+    out_lines.append("Deleted Volumes:, "+fsf_file.removed_volumes)
+    out_lines.append("Motion Correction:, "+fsf_file.motion_correction)
+    out_lines.append("Brain Thresholding:, "+fsf_file.brain_thresh)
+    out_lines.append("Smoothing:, "+fsf_file.smoothing)
+    return out_lines,width
+
 def first_to_csv(fsf_file):
-    print x
+    width=2
+    out_lines=list()
+    out_lines.append('First Level');
+    out_lines.append("Analysis Name:,"+fsf_file.analysis_name)
+    out_lines.append("Input file:,"+fsf_file.in_file);
+    out_lines.append(',')
+    out_lines.append('Regressors:')
+    out_lines.append('Name,Convolution,Add Temporal Derivative,Apply Temporal Filtering,Path')
+    for item in fsf_file.evs.items():
+        key,ev=item
+        name=check_for_none(ev.name)
+        conv=check_for_none(ev.convolution)
+        temporal_deriv=check_for_none(ev.temporal_deriv)
+        filt=check_for_none(ev.temporal_filtering)
+        path=check_for_none(ev.file_path)
+        out_lines.append(",".join([name,conv,temporal_deriv,filt,path]))
+    if width < 5:
+        width = 5
+    out_lines.append(",")
+    out_lines.append('Contrast Matrix:')
+    len_matrix=len(fsf_file.design_matrix[0])
+    if len_matrix > width:
+        width = len_matrix
+    for row in fsf_file.design_matrix:
+        row=",".join(row)
+        out_lines.append(row)
+    return out_lines,width
+
 def fe_to_csv(fsf_file):
-    print x
+    out_lines=list()
+    width=2
+    out_lines.append('Fixed Effects');
+    out_lines.append("Analysis Name:,"+fsf_file.analysis_name)
+    out_lines.append("Input Count:, "+fsf_file.count)
+    out_lines.append("Outpath:,"+fsf_file.output_path)
+    out_lines.append('Inputs:')
+    for ind in range(1,int(fsf_file.count)+1):
+        i=str(ind)
+        line=fsf_file.inputs[i]
+        out_lines.append(line)
+    out_lines.append(',')
+    out_lines.append('Regressor Matrix:')
+    len_matrix=len(fsf_file.regressor_matrix[0])
+    if len_matrix > width:
+        width = len_matrix
+    for row in fsf_file.regressor_matrix:
+        row=",".join(row)
+        out_lines.append(row)
+    out_lines.append(',')
+    out_lines.append('Contrast Matrix:')
+    len_matrix=len(fsf_file.design_matrix[0])
+    if len_matrix > width:
+        width = len_matrix
+    for row in fsf_file.design_matrix:
+        row=",".join(row)
+        out_lines.append(row)
+    return out_lines,width
+
+def me_to_csv(fsf_file):
+    out_lines=list()
+    width=2
+    out_lines.append('Mixed Effects');
+
+    out_lines.append("Analysis Name:,"+fsf_file.analysis_name)
+    out_lines.append("Outpath:,"+fsf_file.output_path)
+    out_lines.append("p-value:,"+fsf_file.p_value)
+    out_lines.append("z-value:,"+fsf_file.z_value)
+    out_lines.append(',')
+    out_lines.append('Inputs:')
+    for ind in range(1,int(fsf_file.count)+1):
+        i=str(ind)
+        line=fsf_file.inputs[i]
+        out_lines.append(line)
+    out_lines.append(',')
+    return out_lines,width
+
+def check_for_none(value):
+    if value is None:
+        return ""
+    else:
+        return value
+
 
 def fsf_to_csv(fsf_file):
     if fsf_file.type == fsf_file.FIRST_TYPE:

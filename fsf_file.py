@@ -22,7 +22,7 @@ class fsf_file:
                 self.analysis_name=self.get_analysis_name(self.output_path)
                 self.z_value=self.get_value("z_thresh")
                 self.p_value=self.get_value("prob_thresh")
-                #self.fill_values_from_dict()
+                self.fill_values_from_dict()
 
             self.parsed=self.parse_design_file(self.fsf_lines,self.type)
             self.out_lines=self.parsed_to_csv_lines(self.parsed,self.type)
@@ -98,6 +98,9 @@ class fsf_file:
             self.input_file=self.strip_root()
 
     def fill_first_level(self):
+        input_value=self.get_value("feat_files(1)")
+        if input_value:
+            self.input_file=self.strip_root(input_value)
         number_of_evs=int(self.get_value("evs_orig"))
         number_of_copes=int(self.get_value("ncon_orig"))
         design_matrix=[['0' for col in range(number_of_evs+2)] for row in range(number_of_copes+1)]
@@ -112,7 +115,7 @@ class fsf_file:
             ev_1.file_path=self.get_value("custom"+index)
             ev_1.set_convolution(self.get_value("convolve"+index))
             ev_1.temporal_deriv=self.binary_value_to_yes_no(self.get_value("deriv_yn"+index))
-            ev_1.temporal_filtering=self.binary_value_to_yes_no(self.get_value("tempflit_yn"+index))
+            ev_1.temporal_filtering=self.binary_value_to_yes_no(self.get_value("tempfilt_yn"+index))
             design_matrix[0][ind+1]=ev_1.name
             self.evs[index]=ev_1
 
@@ -142,13 +145,13 @@ class fsf_file:
         self.inputs=dict()
         self.stripped_inputs=dict()
         #prep matrices
-        regress_matrix=[['0' for col in range(self.number_inputs+1)] for row in range(number_of_evs+1)]
+        regress_matrix=[['0' for col in range(int(self.number_inputs)+1)] for row in range(number_of_evs+1)]
         design_matrix=[['0' for col in range(number_of_evs+2)] for row in range(number_of_copes+1)]
         design_matrix[0][0]="Cope #"
         design_matrix[0][1]="Cope Name"
         regress_matrix[0][0]="EV Name"
         #fill indices
-        for ind in range(1,self.number_inputs+1):
+        for ind in range(1,int(self.number_inputs)+1):
             index=str(ind)
             input_value=self.get_value("feat_files("+index+")")
             self.inputs[index]=input_value
@@ -165,12 +168,12 @@ class fsf_file:
             regress_matrix[ind][0]=ev_temp.name
             design_matrix[0][ind+1]=ev_temp.name
             ev_temp.input_list=dict()
-            for j in range(1,self.number_inputs+1):
+            for j in range(1,int(self.number_inputs)+1):
                 jstr=str(j)
                 input_val=self.get_value("evg"+jstr+"."+index)
                 regress_matrix[ind][j]=input_val
                 ev_temp.input_list[jstr]=input_val
-            seld.evs[index]=ev_temp
+            self.evs[index]=ev_temp
 
         #populate the copes and contrast matrix
         self.cons=dict()
@@ -195,7 +198,7 @@ class fsf_file:
         self.number_subjects=self.get_value("npts")
         self.inputs=dict()
         self.stripped_inputs=dict()
-        for ind in range(1,self.number_inputs+1):
+        for ind in range(1,int(self.number_subjects)+1):
             index=str(ind)
             input_value=self.get_value("feat_files("+index+")")
             self.inputs[index]=input_value
@@ -203,7 +206,7 @@ class fsf_file:
             input_value=input_value.strip('\"')
             input_value=self.strip_cope(input_value)
             self.stripped_inputs[index]=input_value
-            regress_matrix[0][ind]=index
+
         
     def fill_values_from_dict(self):
         if self.type == self.PRE_TYPE:
@@ -652,12 +655,11 @@ class fsf_file:
                 except:
                     line=[ev_names[i],'','','','']
                     print "malformed ev?"
-
-
                 if width < 5:
                     width = 5
-                out_lines.append(",".join(line))
-            out_lines.append(',')
+
+        out_lines.append(",".join(line))
+        out_lines.append(',')
         if type == self.FIRST_TYPE or type == self.FE_TYPE:
             out_lines.append('Contrast Matrix:')
             #design_matrix[0][0]=''
