@@ -5,10 +5,6 @@ from atlas_loc import atlas_loc
 config_file_path='example.cfg'
 def main():
     #Parse options
-
-    """
-
-    """
     parser = argparse.ArgumentParser()
     parser.add_argument('input')
     parser.add_argument('-s', '--study')
@@ -65,6 +61,7 @@ def main():
         condition = parsed_line[0]
         subject = parsed_line[1]
         run = parsed_line[2]
+        print subject+" "+run
         x = parsed_line[3]
         y = parsed_line[4]
         z = parsed_line[5]
@@ -78,7 +75,6 @@ def main():
                     registration_path=os.path.join(registration_path,path_part)
                 except NameError:
                     registration_path=''
-
         if registration_path:
             example_func = os.path.join(registration_path, 'example_func')
             xfm = os.path.join(registration_path, 'example_func2standard.mat')
