@@ -1,5 +1,5 @@
 __author__ = 'Michael'
-import xlwt, os, xlrd, re
+import  os, xlrd, re
 from xlutils import copy
 from PIL import Image
 
@@ -48,6 +48,7 @@ class excel_results:
 
     def determine_cope(self,in_string):
         """Helper function for determining a cope # from a give string "in_string" """
+        global cope_number
         copenumber_match=re.search("cope\d+",in_string)
         if copenumber_match:
             number_match=re.search("\d+",copenumber_match.group(0))
@@ -60,11 +61,15 @@ class excel_results:
 
     def main(self):
         #open template file
+        """
+
+        """
         rb = xlrd.open_workbook(self.template_path, formatting_info=True)
         #ws0 = rb.sheet_by_index(0)
         wb= copy.copy(rb)
         ws = wb.get_sheet(0)
         vert_start=2
+        #noinspection PyUnusedLocal
         horz_start=0
         organize_MEs=dict()
         for me in self.ME_paths:
@@ -76,8 +81,9 @@ class excel_results:
                 horz_start=0
                 try:
                     name=self.lower_level_names[i]
-                except:
-                    "Higher level Mixed effects not found in lower level copes. Mismatch?"
+                except KeyError:
+                    name=''
+                    print "Higher level Mixed effects not found in lower level copes. Mismatch?"
                 me=organize_MEs[i]
                 write_row(name,vert_start,horz_start,me,ws,self.horizontal_move,self.scale_factor)
                 vert_start+=self.vertical_move
