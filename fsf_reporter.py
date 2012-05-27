@@ -26,6 +26,7 @@ def combine_for_csv(first_csv,height_of_all_lines=0,preproc_csv=None,FE_csv=None
         if more than one fsf_file is given. They will be organized according to stage
         preproc, first level, fixed effects, mixed effects
     """
+    global preproc_csv_lines, preproc_csv_lines, ME_width, ME_width, ME_csv_lines, ME_csv_lines, FE_width, FE_width, FE_csv_lines, FE_csv_lines, preproc_width, preproc_width
     first_csv_lines,first_width,first_height=first_csv
     if preproc_csv is not None:
         preproc_csv_lines, preproc_width,preproc_height=preproc_csv
@@ -34,7 +35,7 @@ def combine_for_csv(first_csv,height_of_all_lines=0,preproc_csv=None,FE_csv=None
     if ME_csv is not None:
         ME_csv_lines, ME_width,ME_height=ME_csv
 
-    if height_of_all_lines == 0:
+    if not height_of_all_lines:
         height_of_all_lines=first_height
     out_lines=list()
     for index in range(0,height_of_all_lines):
@@ -73,6 +74,10 @@ def combine_for_csv(first_csv,height_of_all_lines=0,preproc_csv=None,FE_csv=None
     return out_lines
 
 def main():
+    """
+
+    """
+    global first_level_dir, ME_folders, first_fsf, FE_fsf, one_col, ME_csv, FE_csv, preproc_csv, first_csv, FE_dir, FE_dir, ME_dir, ME_dir
     config_file_path="example.cfg"
     #Parse options
     parser = argparse.ArgumentParser()
@@ -84,7 +89,7 @@ def main():
     analysis=args.analysis
     out_path=args.out
 
-    if (feat_folder_path and analysis):
+    if feat_folder_path and analysis:
         print "Please use either -p <path to single feat folder> or"
         print "or -a <analysis name>. Not both."
         exit()
