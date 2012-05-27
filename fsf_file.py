@@ -103,6 +103,7 @@ class fsf_file:
 
         number_of_evs=int(self.get_value("evs_orig"))
         number_of_copes=int(self.get_value("ncon_orig"))
+        #noinspection PyUnusedLocal
         design_matrix=[['0' for col in range(number_of_evs+2)] for row in range(number_of_copes+1)]
         design_matrix[0][0]="Cope #"
         design_matrix[0][1]="Cope Name"
@@ -145,7 +146,9 @@ class fsf_file:
         self.inputs=dict()
         self.stripped_inputs=dict()
         #prep matrices
+        #noinspection PyUnusedLocal
         regress_matrix=[['0' for col in range(int(self.number_inputs)+1)] for row in range(number_of_evs+1)]
+        #noinspection PyUnusedLocal
         design_matrix=[['0' for col in range(number_of_evs+2)] for row in range(number_of_copes+1)]
         design_matrix[0][0]="Cope #"
         design_matrix[0][1]="Cope Name"
@@ -219,7 +222,7 @@ class fsf_file:
             self.fill_ME()
 
     def strip_root(self,line):
-        run=re.search("r\d\/",line)
+        run=re.search("r\d/",line)
         if run:
             out=self.get_fsf_value(line,run.end())
             out='./'+out
@@ -228,7 +231,7 @@ class fsf_file:
         return out
 
     def strip_experiment_root(self,line):
-        run=re.search("TAF_fanal\/",line)
+        run=re.search("TAF_fanal/",line)
         if run:
             out=self.get_fsf_value(line,run.end())
             out='./'+out

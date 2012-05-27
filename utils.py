@@ -150,9 +150,9 @@ def fsf_to_csv(fsf_file):
 def pre_to_csv(fsf_file):
     width=2
     out_lines=list()
-    out_lines.append('Preproc');
+    out_lines.append('Preproc')
     out_lines.append("Analysis Name:,"+fsf_file.analysis_name)
-    out_lines.append("Input file:,"+fsf_file.input_file);
+    out_lines.append("Input file:,"+fsf_file.input_file)
     out_lines.append(',')
     out_lines.append("TR:, "+fsf_file.tr)
     out_lines.append("Total Volumes:, "+fsf_file.number_volumes)
@@ -166,9 +166,9 @@ def pre_to_csv(fsf_file):
 def first_to_csv(fsf_file):
     width=2
     out_lines=list()
-    out_lines.append('First Level');
+    out_lines.append('First Level')
     out_lines.append("Analysis Name:,"+fsf_file.analysis_name)
-    out_lines.append("Input file:,"+fsf_file.input_file);
+    out_lines.append("Input file:,"+fsf_file.input_file)
     out_lines.append(',')
     out_lines.append('Regressors:')
     out_lines.append('Name,Convolution,Add Temporal Derivative,Apply Temporal Filtering,Path')
@@ -196,7 +196,7 @@ def first_to_csv(fsf_file):
 def fe_to_csv(fsf_file):
     out_lines=list()
     width=2
-    out_lines.append('Fixed Effects');
+    out_lines.append('Fixed Effects')
     out_lines.append("Analysis Name:,"+fsf_file.analysis_name)
     out_lines.append("Input Count:, "+fsf_file.number_inputs)
     out_lines.append("Outpath:,"+fsf_file.output_path)
@@ -227,7 +227,7 @@ def fe_to_csv(fsf_file):
 def me_to_csv(fsf_file):
     out_lines=list()
     width=2
-    out_lines.append('Mixed Effects');
+    out_lines.append('Mixed Effects')
     out_lines.append("Analysis Name:,"+fsf_file.analysis_name)
     out_lines.append("Outpath:,"+fsf_file.output_path)
     out_lines.append("p-value:,"+fsf_file.p_value)
@@ -258,7 +258,7 @@ def fsf_to_one_column(fsf_file):
 def pre_to_csv_one_coloumn(fsf_file):
     out_lines=list()
     out_lines.append("Preproc Name:,"+fsf_file.analysis_name)
-    out_lines.append("Input file:,"+fsf_file.input_file);
+    out_lines.append("Input file:,"+fsf_file.input_file)
     out_lines.append(',')
     out_lines.append("TR:, "+fsf_file.tr)
     out_lines.append("Total Volumes:, "+fsf_file.number_volumes)
@@ -271,7 +271,7 @@ def pre_to_csv_one_coloumn(fsf_file):
 def first_to_csv_one_coloumn(fsf_file):
     out_lines=list()
     out_lines.append("First level Name:,"+fsf_file.analysis_name)
-    out_lines.append("Input file:,"+fsf_file.input_file);
+    out_lines.append("Input file:,"+fsf_file.input_file)
     out_lines.append(',')
     out_lines.append('Regressors:')
     for ind in range(1,len(fsf_file.evs)+1):
