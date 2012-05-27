@@ -10,7 +10,16 @@ def parse_to_dict(fsf_lines):
             set_line=re.search("set [^ ]* [^s]*",line.strip())
             if set_line:
                 split_line=line.split(" ")
-                cleaned=split_line[2].strip('\"')
+                if len(split_line) > 3:
+                    #combine and strip mri values that have spaces in them
+                    temp=list()
+                    for i in range (2,len(split_line)):
+                        temp.append(split_line[i])
+                    cleaned=' '.join(temp)
+                    cleaned=cleaned.strip('\"')
+                    print cleaned
+                else:
+                    cleaned=split_line[2].strip('\"')
                 fsf_dict[split_line[1]]=cleaned
     return fsf_dict
 
@@ -125,6 +134,19 @@ def sort_atlas_locations(atlases):
         sorted_locations=sorted(atlas_dict.iteritems(),key=operator.itemgetter(1),reverse=True)
         sorted_atlases[atlas]=sorted_locations
     return sorted_atlases
+
+def fsf_to_csv(fsf_file):
+    if fsf_file.type == fsf_file.FIRST_TYPE:
+        return first_to_csv(fsf_file)
+    elif fsf_file.type == fsf_file.FE_TYPE:
+        return fe_to_csv(fsf_file)
+    elif fsf_file.type == fsf_file.ME_TYPE:
+        return me_to_csv(fsf_file)
+    elif fsf_file.type == fsf_file.PRE_TYPE:
+        return pre_to_csv(fsf_file)
+    else:
+        return None
+
 def pre_to_csv(fsf_file):
     width=2
     out_lines=list()
@@ -138,14 +160,15 @@ def pre_to_csv(fsf_file):
     out_lines.append("Motion Correction:, "+fsf_file.motion_correction)
     out_lines.append("Brain Thresholding:, "+fsf_file.brain_thresh)
     out_lines.append("Smoothing:, "+fsf_file.smoothing)
-    return out_lines,width
+    height=len(out_lines)
+    return out_lines,width,height
 
 def first_to_csv(fsf_file):
     width=2
     out_lines=list()
     out_lines.append('First Level');
     out_lines.append("Analysis Name:,"+fsf_file.analysis_name)
-    out_lines.append("Input file:,"+fsf_file.in_file);
+    out_lines.append("Input file:,"+fsf_file.input_file);
     out_lines.append(',')
     out_lines.append('Regressors:')
     out_lines.append('Name,Convolution,Add Temporal Derivative,Apply Temporal Filtering,Path')
@@ -167,17 +190,18 @@ def first_to_csv(fsf_file):
     for row in fsf_file.design_matrix:
         row=",".join(row)
         out_lines.append(row)
-    return out_lines,width
+    height=len(out_lines)
+    return out_lines,width,height
 
 def fe_to_csv(fsf_file):
     out_lines=list()
     width=2
     out_lines.append('Fixed Effects');
     out_lines.append("Analysis Name:,"+fsf_file.analysis_name)
-    out_lines.append("Input Count:, "+fsf_file.count)
+    out_lines.append("Input Count:, "+fsf_file.number_inputs)
     out_lines.append("Outpath:,"+fsf_file.output_path)
     out_lines.append('Inputs:')
-    for ind in range(1,int(fsf_file.count)+1):
+    for ind in range(1,int(fsf_file.number_inputs)+1):
         i=str(ind)
         line=fsf_file.inputs[i]
         out_lines.append(line)
@@ -197,25 +221,94 @@ def fe_to_csv(fsf_file):
     for row in fsf_file.design_matrix:
         row=",".join(row)
         out_lines.append(row)
-    return out_lines,width
+    height=len(out_lines)
+    return out_lines,width,height
 
 def me_to_csv(fsf_file):
     out_lines=list()
     width=2
     out_lines.append('Mixed Effects');
-
     out_lines.append("Analysis Name:,"+fsf_file.analysis_name)
     out_lines.append("Outpath:,"+fsf_file.output_path)
     out_lines.append("p-value:,"+fsf_file.p_value)
     out_lines.append("z-value:,"+fsf_file.z_value)
     out_lines.append(',')
     out_lines.append('Inputs:')
-    for ind in range(1,int(fsf_file.count)+1):
+    for ind in range(1,int(fsf_file.number_subjects)+1):
         i=str(ind)
         line=fsf_file.inputs[i]
         out_lines.append(line)
     out_lines.append(',')
-    return out_lines,width
+    height=len(out_lines)
+    return out_lines,width,height
+
+
+def fsf_to_one_column(fsf_file):
+    if fsf_file.type == fsf_file.FIRST_TYPE:
+        return first_to_csv_one_coloumn(fsf_file)
+    elif fsf_file.type == fsf_file.FE_TYPE:
+        return fe_to_csv_one_coloumn(fsf_file)
+    elif fsf_file.type == fsf_file.ME_TYPE:
+        return me_to_csv_one_coloumn(fsf_file)
+    elif fsf_file.type == fsf_file.PRE_TYPE:
+        return pre_to_csv_one_coloumn(fsf_file)
+    else:
+        return None
+
+def pre_to_csv_one_coloumn(fsf_file):
+    out_lines=list()
+    out_lines.append("Preproc Name:,"+fsf_file.analysis_name)
+    out_lines.append("Input file:,"+fsf_file.input_file);
+    out_lines.append(',')
+    out_lines.append("TR:, "+fsf_file.tr)
+    out_lines.append("Total Volumes:, "+fsf_file.number_volumes)
+    out_lines.append("Deleted Volumes:, "+fsf_file.removed_volumes)
+    out_lines.append("Motion Correction:, "+fsf_file.motion_correction)
+    out_lines.append("Brain Thresholding:, "+fsf_file.brain_thresh)
+    out_lines.append("Smoothing:, "+fsf_file.smoothing)
+    return out_lines
+
+def first_to_csv_one_coloumn(fsf_file):
+    out_lines=list()
+    out_lines.append("First level Name:,"+fsf_file.analysis_name)
+    out_lines.append("Input file:,"+fsf_file.input_file);
+    out_lines.append(',')
+    out_lines.append('Regressors:')
+    for ind in range(1,len(fsf_file.evs)+1):
+        out_lines.append(','+fsf_file.evs[str(ind)].name)
+    out_lines.append('Contrasts:')
+    for ind in range(1,len(fsf_file.cons)+1):
+        out_lines.append(','+fsf_file.cons[str(ind)].name)
+    return out_lines
+
+def fe_to_csv_one_coloumn(fsf_file):
+    out_lines=list()
+    out_lines.append("FE Name:,"+fsf_file.analysis_name)
+    out_lines.append("Input Count:, "+fsf_file.number_inputs)
+    out_lines.append("Outpath:,"+fsf_file.output_path)
+    out_lines.append('Inputs:')
+    for ind in range(1,len(fsf_file.inputs)+1):
+            out_lines.append(','+fsf_file.inputs[str(ind)])
+    out_lines.append('Regressors:')
+    for ind in range(1,len(fsf_file.evs)+1):
+        out_lines.append(','+fsf_file.evs[str(ind)].name)
+    out_lines.append('Contrasts:')
+    for ind in range(1,len(fsf_file.cons)+1):
+        out_lines.append(','+fsf_file.cons[str(ind)].name)
+    return out_lines
+
+def me_to_csv_one_coloumn(fsf_file):
+    out_lines=list()
+    out_lines.append("ME Name:,"+fsf_file.analysis_name)
+    out_lines.append("Outpath:,"+fsf_file.output_path)
+    out_lines.append("p-value:,"+fsf_file.p_value)
+    out_lines.append("z-value:,"+fsf_file.z_value)
+    out_lines.append("Num subjects:,"+fsf_file.number_subjects)
+    out_lines.append(',')
+    out_lines.append('Subjects:')
+    for ind in range(1,len(fsf_file.inputs)+1):
+        out_lines.append(','+fsf_file.inputs[str(ind)])
+    return out_lines
 
 def check_for_none(value):
     if value is None:
@@ -224,14 +317,4 @@ def check_for_none(value):
         return value
 
 
-def fsf_to_csv(fsf_file):
-    if fsf_file.type == fsf_file.FIRST_TYPE:
-        first_to_csv(fsf_file)
-    elif fsf_file.type == fsf_file.FE_TYPE:
-        fe_to_csv(fsf_file)
-    elif fsf_file.type == fsf_file.ME_TYPE:
-        me_to_csv(fsf_file)
-    elif fsf_file.type == fsf_file.PRE_TYPE:
-        pre_to_csv(fsf_file)
-    else:
-        return None
+
