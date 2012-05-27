@@ -1,5 +1,6 @@
 __author__ = 'Michael'
 import argparse, os, re, ConfigParser
+from utils import fsf_to_csv,fsf_to_one_column
 from fsf_file import fsf_file
 from excel_results import excel_results
 
@@ -20,44 +21,52 @@ def fill_line(line,width):
         line+=','
     return line
 
-def combine_for_csv(first_fsf,height_of_all_lines=0,preproc_fsf=0,FE_fsf=0,ME_fsf=0):
+def combine_for_csv(first_csv,height_of_all_lines=0,preproc_csv=None,FE_csv=None,ME_csv=None):
     """ given atleast one fsf file, format fsf_file.out_lines into a csv file
         if more than one fsf_file is given. They will be organized according to stage
         preproc, first level, fixed effects, mixed effects
     """
+    first_csv_lines,first_width,first_height=first_csv
+    if preproc_csv is not None:
+        preproc_csv_lines, preproc_width,preproc_height=preproc_csv
+    if FE_csv is not None:
+        FE_csv_lines, FE_width,FE_height=FE_csv
+    if ME_csv is not None:
+        ME_csv_lines, ME_width,ME_height=ME_csv
+
     if height_of_all_lines == 0:
-        height_of_all_lines=first_fsf.height
+        height_of_all_lines=first_height
     out_lines=list()
     for index in range(0,height_of_all_lines):
         fullline=''
-        if hasattr(first_fsf,'preproc'):
-            if index < len(preproc_fsf.out_lines):
-                fullline+=fill_line(preproc_fsf.out_lines[index],preproc_fsf.width)
+        if preproc_csv is not None:
+            if index < len(preproc_csv_lines):
+                fullline+=fill_line(preproc_csv_lines[index],preproc_width)
                 fullline+=' ,'
             else:
-                fullline+=fill_line('',preproc_fsf.width)
+                fullline+=fill_line('',preproc_width)
                 fullline+=' ,'
 
-        if first_fsf:
-            if index < len(first_fsf.out_lines):
-                fullline+=fill_line(first_fsf.out_lines[index],first_fsf.width)
+        if first_csv:
+            if index < len(first_csv_lines):
+                fullline+=fill_line(first_csv_lines[index],first_width)
                 fullline+=' ,'
             else:
-                fullline+=fill_line('',first_fsf.width)
+                fullline+=fill_line('',first_width)
                 fullline+=' ,'
-        if FE_fsf:
-            if index < len(FE_fsf.out_lines):
-                fullline+=fill_line(FE_fsf.out_lines[index],FE_fsf.width)
-                fullline+=' ,'
-            else:
-                fullline+=fill_line('',FE_fsf.width)
-                fullline+=' ,'
-        if ME_fsf:
-            if index < len(ME_fsf.out_lines):
-                fullline+=fill_line(ME_fsf.out_lines[index],ME_fsf.width)
+        if FE_csv:
+            if index < len(FE_csv_lines):
+                fullline+=fill_line(FE_csv_lines[index],FE_width)
                 fullline+=' ,'
             else:
-                fullline+=fill_line('',ME_fsf.width)
+                fullline+=fill_line('',FE_width)
+                fullline+=' ,'
+        if ME_csv:
+            if index < len(ME_csv_lines):
+                fullline+=fill_line(ME_csv_lines[index],ME_width)
+                fullline+=' ,'
+            else:
+                fullline+=fill_line('',ME_width)
                 fullline+=' ,'
         fullline+='\n'
         out_lines.append(fullline)
@@ -125,43 +134,44 @@ def main():
 
         #load fsf files using fsf_file class
         first_fsf=fsf_file(os.path.join(first_folder,'design.fsf'))
-        if first_fsf.fsf_lines:
-            one_col.extend(first_fsf.one_col)
+        if first_fsf.type == first_fsf.FIRST_TYPE:
+            one_col.extend(fsf_to_one_column(first_fsf))
             one_col.append(",\n")
-            if first_fsf.height > height_of_all_lines:
-                height_of_all_lines=first_fsf.height
+            first_csv=fsf_to_csv(first_fsf)
+            if first_csv[2] > height_of_all_lines:
+                height_of_all_lines=first_csv[2]
             if hasattr(first_fsf,'preproc'):
                 preprocdir=os.path.join(first_level_dir,first_fsf.preproc)
                 preproc_fsf=fsf_file((os.path.join(preprocdir,'design.fsf')))
-                one_col.extend(preproc_fsf.one_col)
+                preproc_csv=fsf_to_csv(preproc_fsf)
+                one_col.extend(fsf_to_one_column(preproc_fsf))
                 one_col.append(",\n")
-                preproc_lines=preproc_fsf.out_lines
-
-                if preproc_fsf.height > height_of_all_lines:
-                    height_of_all_lines=preproc_fsf.height
         else:
-            print "No first level loaded, data will not be included in output"
+            print "First level not loaded or design file is corrupt. Not adding to output"
+
 
         FE_fsf=fsf_file(os.path.join(FE_folder,'design.fsf'))
-        if FE_fsf.fsf_lines:
+        if FE_fsf.type == FE_fsf.FE_TYPE:
             one_col.append(",\n")
-            if FE_fsf.height > height_of_all_lines:
-                height_of_all_lines=FE_fsf.height
-            one_col.extend(FE_fsf.one_col)
+            FE_csv=fsf_to_csv(FE_fsf)
+            if FE_csv[2] > height_of_all_lines:
+                height_of_all_lines=FE_csv[2]
+            one_col.extend(fsf_to_one_column(FE_fsf))
             one_col.append(",\n")
         else:
-           print "No fixed effects loaded, data will not be included in output"
+            print "No fixed effects loaded, data will not be included in output"
 
         ME_fsf=fsf_file(os.path.join(ME_folders[0],'design.fsf'))
         if ME_fsf:
-            if ME_fsf.height > height_of_all_lines:
-                height_of_all_lines=FE_fsf.height
-            one_col.extend(ME_fsf.one_col)
+            ME_csv=fsf_to_csv(ME_fsf)
+            if ME_csv[2] > height_of_all_lines:
+                height_of_all_lines=ME_csv[2]
+            one_col.extend(fsf_to_one_column(ME_fsf))
             one_col.append(",\n")
         else:
             print "No Mixed effects loaded, data will not be included in output"
     
-    out_lines=combine_for_csv(first_fsf,height_of_all_lines,preproc_fsf,FE_fsf,ME_fsf)
+    out_lines=combine_for_csv(first_csv,height_of_all_lines,preproc_csv,FE_csv,ME_csv)
 
 
 
@@ -174,11 +184,23 @@ def main():
 
     excel_output_path=out_path+'.xls'
 
+
+#    #prep fe names
+    fe_cope_names=dict()
+    for item in FE_fsf.cons.items():
+        key,contrast=item
+        fe_cope_names[key]=contrast.name
+
+    first_cope_names=dict()
+    for item in first_fsf.cons.items():
+        key,contrast=item
+        first_cope_names[key]=contrast.name
+
     #TODO need to figure out logic for not double FEs
     if excel_output_path:
         #TODO need to make template file more flexible
         template_path="template2.xls"
-        excel=excel_results(FE_fsf.cope_names,first_fsf.cope_names, ME_folders, template_path,excel_output_path)
+        excel=excel_results(fe_cope_names,first_cope_names, ME_folders, template_path,excel_output_path)
         excel.main()
 
 if __name__ == "__main__":
