@@ -3,6 +3,10 @@ import ConfigParser
 
 def main():
     config = ConfigParser.RawConfigParser()
+    config.add_section('directory structure')
+    config.set('directory structure','experiment_root',"/mnt/Storage/TAF_fanal/")
+
+
     config.add_section('Analysis Directories')
     config.set('Analysis Directories', 'first_level_dir', "/Volumes/storage/TAF_fanal/FS/Ctrl/x305/r2")
     config.set('Analysis Directories', 'FE_dir', "/Volumes/storage/TAF_fanal/FS/FE2")
@@ -15,6 +19,8 @@ def main():
     config.set('run_to_atlas','study_code','PV')
     config.set('run_to_atlas','experiment_root',"/mnt/Storage/TAF_fanal/")
     config.set("run_to_atlas",'standard_brain',"/usr/share/fsl/data/standard/MNI152_T1_2mm_brain")
+
+
     with open('example.cfg', 'wb') as configfile:
         config.write(configfile)
 
