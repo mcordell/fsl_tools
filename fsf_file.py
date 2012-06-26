@@ -15,7 +15,7 @@ class fsf_file:
         self.fsf_lines=self.load_file()
 
         if self.fsf_lines:
-            self.values_dict=parse_to_dict(self.fsf_lines)
+            self.values_dict,self.fsf_line_key=parse_to_dict(self.fsf_lines)
             self.type=self.get_type()
             if type:
                 #populate the values common to all fsf's
@@ -24,6 +24,7 @@ class fsf_file:
                 self.z_value=self.get_value("z_thresh")
                 self.p_value=self.get_value("prob_thresh")
                 self.fill_values_from_dict()
+                self.set_input_type()
 
     def get_value(self,value_id):
         packaged_value="fmri("+value_id+")"
@@ -39,16 +40,19 @@ class fsf_file:
         high_value=self.get_value("level")
         analysis_type=self.get_value("analysis")
         type=None
-        if high_value != "1":
-            higher_level_type=self.get_value("mixed_yn")
-            if higher_level_type == "0" or higher_level_type == "2" or higher_level_type == "1":
-                type=self.ME_TYPE
-            elif higher_level_type == "3":
-                type=self.FE_TYPE
-        elif analysis_type == "6" or analysis_type == "7":
-            type=self.FIRST_TYPE
-        elif analysis_type == "1":
-            type=self.PRE_TYPE
+        if high_value is None or analysis_type is None:
+            raise BadFsfException("Type of fsf not found. Fsf file probably corrupt.")
+        else:
+            if high_value != "1":
+                higher_level_type=self.get_value("mixed_yn")
+                if higher_level_type == "0" or higher_level_type == "2" or higher_level_type == "1":
+                    type=self.ME_TYPE
+                elif higher_level_type == "3":
+                    type=self.FE_TYPE
+            elif analysis_type == "6" or analysis_type == "7":
+                type=self.FIRST_TYPE
+            elif analysis_type == "1":
+                type=self.PRE_TYPE
         return type
 
     def load_file(self):
@@ -58,6 +62,20 @@ class fsf_file:
                 return original.readlines()
         except IOError:
             print "Could not open fsf"
+            raise
+
+    def set_input_type(self):
+        input_type=self.get_value('inputtype')
+        if input_type == "2":
+            if self.type == self.ME_TYPE or self.type == self.FE_TYPE:
+                self.input_type=2
+            else:
+                print "I found a strange value at fmri(inputtype), this value should be 1 for first levels/preprocs.\n"
+                print "I will assume it should actually be 1"
+                self.input_type=1
+        else:
+            self.input_type=1
+
 
     def get_analysis_name(self,output_dir_string):
         analysis_name=None
@@ -198,9 +216,11 @@ class fsf_file:
         self.regressor_matrix=regress_matrix
 
     def fill_ME(self):
+        subject_pattern="x\d\d\d"
         self.number_subjects=self.get_value("npts")
         self.inputs=dict()
         self.stripped_inputs=dict()
+        self.subjects=dict()
         for ind in range(1,int(self.number_subjects)+1):
             index=str(ind)
             input_value=self.get_value("feat_files("+index+")")
@@ -209,6 +229,10 @@ class fsf_file:
             input_value=input_value.strip('\"')
             input_value=self.strip_cope(input_value)
             self.stripped_inputs[index]=input_value
+
+            subject_match=re.search(subject_pattern,input_value)
+            if subject_match:
+                self.subjects[index]=subject_match.group()
 
         
     def fill_values_from_dict(self):
@@ -280,4 +304,6 @@ class ev:
 class contrast:
     Name = "Contrast"
 
+class BadFsfException(BaseException):
+    pass
 
