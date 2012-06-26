@@ -1,9 +1,89 @@
 __author__ = 'michael'
 import re, subprocess, operator
-from xlwt import easyxf
+#from xlwt import easyxfs
+
+def get_feat_directory(in_string):
+    dir_match=re.search('\.(g)feat',in_string)
+    if dir_match:
+        full_match_start,full_match_end=dir_match.regs[0]
+        return in_string[0:full_match_end]+'/'
+    else:
+        return None
+
+
+
+def write_report(lines,path):
+    """
+        Helper text write function
+    """
+    with file(path, 'w') as out:
+        return out.writelines(lines)
+
+def fill_line(line,width):
+    """ helper function for making a csv line have a fixed number (width) of commas
+        this is helpful for evening out all of the csv lines in a set to have equal
+        "width"
+    """
+    comma_count=line.count(',')
+    for i in range(0,(width-comma_count)):
+        line+=','
+    return line
+
+def combine_for_csv(first_csv,height_of_all_lines=0,preproc_csv=None,FE_csv=None,ME_csv=None):
+    """ given atleast one fsf file, format fsf_file.out_lines into a csv file
+        if more than one fsf_file is given. They will be organized according to stage
+        preproc, first level, fixed effects, mixed effects
+    """
+    global preproc_csv_lines, preproc_csv_lines, ME_width, ME_width, ME_csv_lines, ME_csv_lines, FE_width, FE_width, FE_csv_lines, FE_csv_lines, preproc_width, preproc_width
+    first_csv_lines,first_width,first_height=first_csv
+    if preproc_csv is not None:
+        preproc_csv_lines, preproc_width,preproc_height=preproc_csv
+    if FE_csv is not None:
+        FE_csv_lines, FE_width,FE_height=FE_csv
+    if ME_csv is not None:
+        ME_csv_lines, ME_width,ME_height=ME_csv
+
+    if not height_of_all_lines:
+        height_of_all_lines=first_height
+    out_lines=list()
+    for index in range(0,height_of_all_lines):
+        fullline=''
+        if preproc_csv is not None:
+            if index < len(preproc_csv_lines):
+                fullline+=fill_line(preproc_csv_lines[index],preproc_width)
+                fullline+=' ,'
+            else:
+                fullline+=fill_line('',preproc_width)
+                fullline+=' ,'
+
+        if first_csv:
+            if index < len(first_csv_lines):
+                fullline+=fill_line(first_csv_lines[index],first_width)
+                fullline+=' ,'
+            else:
+                fullline+=fill_line('',first_width)
+                fullline+=' ,'
+        if FE_csv:
+            if index < len(FE_csv_lines):
+                fullline+=fill_line(FE_csv_lines[index],FE_width)
+                fullline+=' ,'
+            else:
+                fullline+=fill_line('',FE_width)
+                fullline+=' ,'
+        if ME_csv:
+            if index < len(ME_csv_lines):
+                fullline+=fill_line(ME_csv_lines[index],ME_width)
+                fullline+=' ,'
+            else:
+                fullline+=fill_line('',ME_width)
+                fullline+=' ,'
+        fullline+='\n'
+        out_lines.append(fullline)
+    return out_lines
 
 def parse_to_dict(fsf_lines):
     fsf_dict=dict()
+    fsf_line_key=list()
     for line in fsf_lines:
         line=line.strip()
         if len(line) > 0 and line[0] != "#":
@@ -16,12 +96,13 @@ def parse_to_dict(fsf_lines):
                     for i in range (2,len(split_line)):
                         temp.append(split_line[i])
                     cleaned=' '.join(temp)
-                    cleaned=cleaned.strip('\"')
+                    #cleaned=cleaned.strip('\"')
                     print cleaned
                 else:
-                    cleaned=split_line[2].strip('\"')
+                    cleaned=split_line[2]#.strip('\"')
                 fsf_dict[split_line[1]]=cleaned
-    return fsf_dict
+                fsf_line_key.append(split_line[1])
+    return fsf_dict,fsf_line_key
 
 def add_to_dict(atlas, dictionary):
     atlas_percentages = dict()
@@ -258,8 +339,7 @@ def fsf_to_one_column(fsf_file):
 def pre_to_csv_one_coloumn(fsf_file):
     out_lines=list()
     out_lines.append("Preproc Name:,"+fsf_file.analysis_name)
-    out_lines.append("Input file:,"+fsf_file.input_file)
-    out_lines.append(',')
+    #out_lines.append("Input file:,"+fsf_file.input_file)
     out_lines.append("TR:, "+fsf_file.tr)
     out_lines.append("Total Volumes:, "+fsf_file.number_volumes)
     out_lines.append("Deleted Volumes:, "+fsf_file.removed_volumes)
@@ -292,6 +372,7 @@ def fe_to_csv_one_coloumn(fsf_file):
     out_lines.append('Regressors:')
     for ind in range(1,len(fsf_file.evs)+1):
         out_lines.append(','+fsf_file.evs[str(ind)].name)
+    out_lines.append(',')
     out_lines.append('Contrasts:')
     for ind in range(1,len(fsf_file.cons)+1):
         out_lines.append(','+fsf_file.cons[str(ind)].name)
@@ -306,8 +387,8 @@ def me_to_csv_one_coloumn(fsf_file):
     out_lines.append("Num subjects:,"+fsf_file.number_subjects)
     out_lines.append(',')
     out_lines.append('Subjects:')
-    for ind in range(1,len(fsf_file.inputs)+1):
-        out_lines.append(','+fsf_file.inputs[str(ind)])
+#    for ind in range(1,len(fsf_file.inputs)+1):
+#        out_lines.append(','+fsf_file.subjects[str(ind)])
     return out_lines
 
 def check_for_none(value):
