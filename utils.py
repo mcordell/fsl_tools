@@ -3,14 +3,12 @@ import re, subprocess, operator
 #from xlwt import easyxfs
 
 def get_feat_directory(in_string):
-    dir_match=re.search('\.(g)feat',in_string)
+    dir_match=re.search('\.(g)*feat',in_string)
     if dir_match:
         full_match_start,full_match_end=dir_match.regs[0]
         return in_string[0:full_match_end]+'/'
     else:
         return None
-
-
 
 def write_report(lines,path):
     """
@@ -29,6 +27,40 @@ def fill_line(line,width):
         line+=','
     return line
 
+def combine_left_right(left_csv, right_csv):
+    left_width=find_width_of_csv(left_csv)
+    left_height=len(left_csv)
+    right_width=find_width_of_csv(right_csv)
+    right_height=len(right_csv)
+    out_lines=list()
+    if left_height > right_height:
+        total_height=left_height
+    else:
+        total_height=right_height
+    for index in range(0,total_height):
+        fullline=''
+        if index < left_height:
+            fullline+=fill_line(left_csv[index],left_width)
+            fullline+=' , ,'
+        else:
+            fullline+=fill_line('',left_width)
+            fullline+=' , ,'
+        if index < right_height:
+            fullline+=fill_line(right_csv[index],right_width)
+        else:
+            fullline+=fill_line('',right_width)
+        fullline+='\n'
+        out_lines.append(fullline)
+    return out_lines
+
+
+def find_width_of_csv(csv_lines):
+    max_width=1
+    for line in csv_lines:
+        comma_count=line.count(',')
+        if comma_count > max_width:
+            max_width=comma_count
+    return max_width
 def combine_for_csv(first_csv,height_of_all_lines=0,preproc_csv=None,FE_csv=None,ME_csv=None):
     """ given atleast one fsf file, format fsf_file.out_lines into a csv file
         if more than one fsf_file is given. They will be organized according to stage
