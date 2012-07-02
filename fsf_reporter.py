@@ -6,6 +6,8 @@ from excel_results import excel_results
 
 def main():
     global first_level_dir, ME_folders, first_fsf, FE_fsf, one_col, ME_csv, FE_csv, preproc_csv, first_csv, FE_dir, FE_dir, ME_dir, ME_dir
+
+
     #Parse options
     parser = argparse.ArgumentParser()
     parser.add_argument('-p', '--featpath')
@@ -17,6 +19,7 @@ def main():
     feat_folder_path=args.featpath
     analysis=args.analysis
     out_path=args.out
+
     if config_file_path is None:
         config_file_path="example.cfg"
     if feat_folder_path and analysis:
@@ -26,90 +29,197 @@ def main():
 
     template_path="template2.xls"
     # read configuration file
-    if os.path.isfile(config_file_path):
-        config = ConfigParser.RawConfigParser()
-        config.read(config_file_path)
-        first_level_dir = config.get('Analysis Directories', 'first_level_dir')
-        FE_dir = config.get('Analysis Directories', 'fe_dir')
-        ME_dir = config.get('Analysis Directories', 'me_dir')
-        template_path=config.get('Analysis Directories', 'template')
 
+    try:
+        f = open(config_file_path)
+        f.close()
+    except IOError:
+        print "Config file path not valid. Please specify a valid path"
+
+    config = ConfigParser.RawConfigParser()
+    config.read(config_file_path)
+    first_level_dir = config.get('Analysis Directories', 'first_level_dir')
+    FE_dir = config.get('Analysis Directories', 'fe_dir')
+    ME_dir = config.get('Analysis Directories', 'me_dir')
+    template_path=config.get('Analysis Directories', 'template')
     height_of_all_lines=0
 
     #find the location of the feat folders within the directories from the config file
     if analysis:
-        ME_list=os.listdir(os.path.join(ME_dir))
-        ME_folders=list()
-        for folder in ME_list:
-            analysis_match=re.search(analysis+"_cope", folder)
-            if analysis_match:
-                combined=os.path.join(ME_dir,folder)
-                if os.path.isdir(combined):
-                    ME_folders.append(combined)
 
-        first_list=os.listdir(os.path.join(first_level_dir))
-        first_folder=''
-        for folder in first_list:
-            analysis_match=re.search(analysis+'.feat', folder)
-            if analysis_match:
-                combined=os.path.join(first_level_dir,folder)
-                if os.path.isdir(combined):
-                    first_folder=combined
-                    break
+        ###Search down switch
+        if search_down_method:
+            #find ME directories that match analysis pattern
+            ME_list=os.listdir(os.path.join(ME_dir))
+            ME_folders=list()
+            for folder in ME_list:
+                analysis_match=re.search(analysis+"_cope", folder)
+                if analysis_match:
+                    combined=os.path.join(ME_dir,folder)
+                    if os.path.isdir(combined):
+                        ME_folders.append(combined)
+            if ME_folders:
+                #load any ME directory
+                ME_fsf=fsf_file(os.path.join(ME_folders[0],'design.fsf'))
+                ME_inputs=ME_fsf.inputs
+                fe_fsf_path=''
+                me_input_count=1;
+                while not fe_fsf_path:
+                    try:
+                        fe_fsf_path=ME_inputs[str(me_input_count)].strip('\"')+'/design.fsf'
+                    except:
+                        break
+                    if not os.path.isfile(fe_fsf_path):
+                        me_input_count+=1
+                        fe_fsf_path=''
+                FE_fsf=fsf_file(fe_fsf_path)
+                FE_inputs=FE_fsf.inputs
+                first_fsf_path=''
+                other_FES=list()
+                input_fsf=get_input_fsf(FE_inputs)
+                while (input_fsf.type == input_fsf.FE_TYPE):
+                    other_FES.append(input_fsf)
+                    input_fsf=get_input_fsf(input_fsf.inputs)
 
-        FE_list=os.listdir(os.path.join(FE_dir))
-        FE_folder=''
-        for folder in FE_list:
-            analysis_match=re.search(analysis+'.gfeat', folder)
-            if analysis_match:
-                combined=os.path.join(FE_dir,folder)
-                if os.path.isdir(combined):
-                    FE_folder=combined
-                    break
+                first_fsf=input_fsf
+                one_col=list()
+                if first_fsf.type == first_fsf.FIRST_TYPE:
+                    one_col.extend(fsf_to_one_column(first_fsf))
+                    one_col.append(",\n")
+                    first_csv=fsf_to_csv(first_fsf)
+                    if first_csv[2] > height_of_all_lines:
+                        height_of_all_lines=first_csv[2]
+                    if hasattr(first_fsf,'preproc'):
+                        preprocdir=os.path.join(first_level_dir,first_fsf.preproc)
+                        preproc_fsf=fsf_file((os.path.join(preprocdir,'design.fsf')))
+                        preproc_csv=fsf_to_csv(preproc_fsf)
+                        one_col.extend(fsf_to_one_column(preproc_fsf))
+                        one_col.append(",\n")
+                    else:
+                        preproc_csv=None
+                else:
+                    first_csv=None
+                    preproc_csv=None
+                    print "First level not loaded or design file is corrupt. Not adding to output"
 
-        one_col=list()
+                if FE_fsf.type == FE_fsf.FE_TYPE:
+                    one_col.append(",\n")
+                    FE_csv=fsf_to_csv(FE_fsf)
+                    if FE_csv[2] > height_of_all_lines:
+                        height_of_all_lines=FE_csv[2]
+                    one_col.extend(fsf_to_one_column(FE_fsf))
+                    one_col.append(",\n")
+                else:
+                    FE_csv=None
+                    print "No fixed effects loaded, data will not be included in output"
 
-        #load fsf files using fsf_file class
-        first_fsf=fsf_file(os.path.join(first_folder,'design.fsf'))
-        if first_fsf.type == first_fsf.FIRST_TYPE:
-            one_col.extend(fsf_to_one_column(first_fsf))
-            one_col.append(",\n")
-            first_csv=fsf_to_csv(first_fsf)
-            if first_csv[2] > height_of_all_lines:
-                height_of_all_lines=first_csv[2]
-            if hasattr(first_fsf,'preproc'):
-                preprocdir=os.path.join(first_level_dir,first_fsf.preproc)
-                preproc_fsf=fsf_file((os.path.join(preprocdir,'design.fsf')))
-                preproc_csv=fsf_to_csv(preproc_fsf)
-                one_col.extend(fsf_to_one_column(preproc_fsf))
+                if ME_fsf:
+                    ME_csv=fsf_to_csv(ME_fsf)
+                    if ME_csv[2] > height_of_all_lines:
+                        height_of_all_lines=ME_csv[2]
+                    one_col.extend(fsf_to_one_column(ME_fsf))
+                    one_col.append(",\n")
+                else:
+                    ME_csv=None
+                    print "No Mixed effects loaded, data will not be included in output"
+
+                #out_lines=combine_for_csv(first_csv,height_of_all_lines,preproc_csv,FE_csv,ME_csv)
+                out_lines=list()
+                if first_csv:
+                    if preproc_csv:
+                        out_lines=combine_left_right(preproc_csv[0],first_csv[0])
+                    else:
+                        out_lines=first_csv[0]
+                if FE_csv:
+                    if other_FES:
+                        size_of_others=len(other_FES)-1
+                        print size_of_others
+                        while size_of_others >= 0:
+
+                            print size_of_others
+                            temp_csv=fsf_to_csv(other_FES[size_of_others])
+                            out_lines=combine_left_right(out_lines,temp_csv[0])
+                            size_of_others=size_of_others-1
+
+                    out_lines=combine_left_right(out_lines,FE_csv[0])
+                if ME_csv:
+                    out_lines=combine_left_right(out_lines,ME_csv[0])
+        else:
+        ###Old method of searching
+            ME_list=os.listdir(os.path.join(ME_dir))
+            ME_folders=list()
+            for folder in ME_list:
+                analysis_match=re.search(analysis+"_cope", folder)
+                if analysis_match:
+                    combined=os.path.join(ME_dir,folder)
+                    if os.path.isdir(combined):
+                        ME_folders.append(combined)
+
+            first_list=os.listdir(os.path.join(first_level_dir))
+            first_folder=''
+            for folder in first_list:
+                analysis_match=re.search(analysis+'.feat', folder)
+                if analysis_match:
+                    combined=os.path.join(first_level_dir,folder)
+                    if os.path.isdir(combined):
+                        first_folder=combined
+                        break
+
+            FE_list=os.listdir(os.path.join(FE_dir))
+            FE_folder=''
+            for folder in FE_list:
+                analysis_match=re.search(analysis+'.gfeat', folder)
+                if analysis_match:
+                    combined=os.path.join(FE_dir,folder)
+                    if os.path.isdir(combined):
+                        FE_folder=combined
+                        break
+
+            one_col=list()
+
+            #load fsf files using fsf_file class
+            first_fsf=fsf_file(os.path.join(first_folder,'design.fsf'))
+            if first_fsf.type == first_fsf.FIRST_TYPE:
+                one_col.extend(fsf_to_one_column(first_fsf))
                 one_col.append(",\n")
-        else:
-            print "First level not loaded or design file is corrupt. Not adding to output"
+                first_csv=fsf_to_csv(first_fsf)
+                if first_csv[2] > height_of_all_lines:
+                    height_of_all_lines=first_csv[2]
+                if hasattr(first_fsf,'preproc'):
+                    preprocdir=os.path.join(first_level_dir,first_fsf.preproc)
+                    preproc_fsf=fsf_file((os.path.join(preprocdir,'design.fsf')))
+                    preproc_csv=fsf_to_csv(preproc_fsf)
+                    one_col.extend(fsf_to_one_column(preproc_fsf))
+                    one_col.append(",\n")
+            else:
+                print "First level not loaded or design file is corrupt. Not adding to output"
 
 
-        FE_fsf=fsf_file(os.path.join(FE_folder,'design.fsf'))
-        if FE_fsf.type == FE_fsf.FE_TYPE:
-            one_col.append(",\n")
-            FE_csv=fsf_to_csv(FE_fsf)
-            if FE_csv[2] > height_of_all_lines:
-                height_of_all_lines=FE_csv[2]
-            one_col.extend(fsf_to_one_column(FE_fsf))
-            one_col.append(",\n")
-        else:
-            FE_csv=None
-            print "No fixed effects loaded, data will not be included in output"
+            FE_fsf=fsf_file(os.path.join(FE_folder,'design.fsf'))
+            if FE_fsf.type == FE_fsf.FE_TYPE:
+                one_col.append(",\n")
+                FE_csv=fsf_to_csv(FE_fsf)
+                if FE_csv[2] > height_of_all_lines:
+                    height_of_all_lines=FE_csv[2]
+                one_col.extend(fsf_to_one_column(FE_fsf))
+                one_col.append(",\n")
+            else:
+                FE_csv=None
+                print "No fixed effects loaded, data will not be included in output"
 
-        ME_fsf=fsf_file(os.path.join(ME_folders[0],'design.fsf'))
-        if ME_fsf:
-            ME_csv=fsf_to_csv(ME_fsf)
-            if ME_csv[2] > height_of_all_lines:
-                height_of_all_lines=ME_csv[2]
-            one_col.extend(fsf_to_one_column(ME_fsf))
-            one_col.append(",\n")
-        else:
-            print "No Mixed effects loaded, data will not be included in output"
+            ME_fsf=fsf_file(os.path.join(ME_folders[0],'design.fsf'))
+            if ME_fsf:
+                ME_csv=fsf_to_csv(ME_fsf)
+                if ME_csv[2] > height_of_all_lines:
+                    height_of_all_lines=ME_csv[2]
+                one_col.extend(fsf_to_one_column(ME_fsf))
+                one_col.append(",\n")
+            else:
+                print "No Mixed effects loaded, data will not be included in output"
 
-        out_lines=combine_for_csv(first_csv,height_of_all_lines,preproc_csv,FE_csv,ME_csv)
+            out_lines=combine_for_csv(first_csv,height_of_all_lines,preproc_csv,FE_csv,ME_csv)
+
+
         new_one=list()
         for row in one_col:
             new_one.append(row+'\n')
