@@ -1,6 +1,23 @@
 __author__ = 'michael'
-import re, subprocess, operator
-#from xlwt import easyxfs
+import re, subprocess, operator, os
+from fsf_file import fsf_file
+from xlwt import easyxf
+
+
+def get_input_fsf(inputs):
+    valid_path=''
+    input_count=1
+    while not valid_path:
+        raw_input=inputs[str(input_count)].strip('\"')
+        input_path=get_feat_directory(raw_input)
+        valid_path=input_path+'design.fsf'
+        if not os.path.isfile(valid_path):
+            input_count+=1
+            valid_path=''
+    if valid_path:
+        return fsf_file(valid_path)
+    else:
+        return None
 
 def get_feat_directory(in_string):
     dir_match=re.search('\.(g)*feat',in_string)
@@ -14,8 +31,13 @@ def write_report(lines,path):
     """
         Helper text write function
     """
+    out_lines=list()
+    for line in lines:
+        line=line.strip('\n')
+        line+='\n'
+        out_lines.append(line)
     with file(path, 'w') as out:
-        return out.writelines(lines)
+        return out.writelines(out_lines)
 
 def fill_line(line,width):
     """ helper function for making a csv line have a fixed number (width) of commas
@@ -39,17 +61,18 @@ def combine_left_right(left_csv, right_csv):
         total_height=right_height
     for index in range(0,total_height):
         fullline=''
-        if index < left_height:
-            fullline+=fill_line(left_csv[index],left_width)
-            fullline+=' , ,'
-        else:
-            fullline+=fill_line('',left_width)
-            fullline+=' , ,'
-        if index < right_height:
-            fullline+=fill_line(right_csv[index],right_width)
-        else:
-            fullline+=fill_line('',right_width)
-        fullline+='\n'
+        if left_height > 0:
+            if index < left_height:
+                fullline+=fill_line(left_csv[index],left_width)
+                fullline+=' , ,'
+            else:
+                fullline+=fill_line('',left_width)
+                fullline+=' , ,'
+        if right_height > 0:
+            if index < right_height:
+                fullline+=fill_line(right_csv[index],right_width)
+            else:
+                fullline+=fill_line('',right_width)
         out_lines.append(fullline)
     return out_lines
 
