@@ -1,6 +1,5 @@
 __author__ = 'michael'
 import re, subprocess, operator, os
-from fsf_file import fsf_file
 from xlwt import easyxf
 
 
@@ -15,7 +14,7 @@ def get_input_fsf(inputs):
             input_count+=1
             valid_path=''
     if valid_path:
-        return fsf_file(valid_path)
+        return valid_path
     else:
         return None
 
