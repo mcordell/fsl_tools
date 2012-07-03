@@ -1,12 +1,16 @@
 __author__ = 'Michael'
 import argparse, os, re, ConfigParser
-from utils import fsf_to_csv,fsf_to_one_column,write_report,fill_line,combine_for_csv
+from utils import fsf_to_csv,fsf_to_one_column,write_report,combine_for_csv, get_input_fsf,combine_left_right
 from fsf_file import fsf_file
 from excel_results import excel_results
+from ConfigParser import NoSectionError
 
 def main():
-    global first_level_dir, ME_folders, first_fsf, FE_fsf, one_col, ME_csv, FE_csv, preproc_csv, first_csv, FE_dir, FE_dir, ME_dir, ME_dir
+    """
 
+    """
+    global first_level_dir, ME_folders, first_fsf, FE_fsf, one_col, ME_csv, FE_csv, preproc_csv, first_csv, FE_dir, FE_dir, ME_dir, ME_dir, out_lines
+    template_path="template2.xls"
 
     #Parse options
     parser = argparse.ArgumentParser()
@@ -14,11 +18,20 @@ def main():
     parser.add_argument('-o', '--out')
     parser.add_argument('-a', '--analysis')
     parser.add_argument('-c', '--config')
+    parser.add_argument('-m','--manual_search')
     args=parser.parse_args()
     config_file_path=args.config
     feat_folder_path=args.featpath
     analysis=args.analysis
-    out_path=args.out
+    if args.manual_search:
+        search_down_method=0
+    else:
+        search_down_method=1
+    if args.out is None:
+        out_path=analysis
+    else:
+        out_path=args.out
+
 
     if config_file_path is None:
         config_file_path="example.cfg"
@@ -27,26 +40,32 @@ def main():
         print "or -a <analysis name>. Not both."
         exit()
 
-    template_path="template2.xls"
-    # read configuration file
 
+    # read configuration file
     try:
-        f = open(config_file_path)
+        f = open(config_file_path,'r')
         f.close()
     except IOError:
         print "Config file path not valid. Please specify a valid path"
+        exit()
 
     config = ConfigParser.RawConfigParser()
     config.read(config_file_path)
-    first_level_dir = config.get('Analysis Directories', 'first_level_dir')
-    FE_dir = config.get('Analysis Directories', 'fe_dir')
-    ME_dir = config.get('Analysis Directories', 'me_dir')
-    template_path=config.get('Analysis Directories', 'template')
+
+    try:
+        first_level_dir = config.get('Analysis Directories', 'first_level_dir')
+        FE_dir = config.get('Analysis Directories', 'fe_dir')
+        ME_dir = config.get('Analysis Directories', 'me_dir')
+        template_path=config.get('Analysis Directories', 'template')
+    except NoSectionError:
+        print "Config file appears to be corrupt, regenerate with create_config or specify new path"
+        exit()
+
     height_of_all_lines=0
 
     #find the location of the feat folders within the directories from the config file
-    if analysis:
 
+    if analysis:
         ###Search down switch
         if search_down_method:
             #find ME directories that match analysis pattern
@@ -63,32 +82,30 @@ def main():
                 ME_fsf=fsf_file(os.path.join(ME_folders[0],'design.fsf'))
                 ME_inputs=ME_fsf.inputs
                 fe_fsf_path=''
-                me_input_count=1;
+                me_input_count=1
                 while not fe_fsf_path:
                     try:
                         fe_fsf_path=ME_inputs[str(me_input_count)].strip('\"')+'/design.fsf'
-                    except:
+                    except KeyError:
                         break
                     if not os.path.isfile(fe_fsf_path):
                         me_input_count+=1
                         fe_fsf_path=''
                 FE_fsf=fsf_file(fe_fsf_path)
                 FE_inputs=FE_fsf.inputs
-                first_fsf_path=''
                 other_FES=list()
-                input_fsf=get_input_fsf(FE_inputs)
-                while (input_fsf.type == input_fsf.FE_TYPE):
+                input_fsf_path=get_input_fsf(FE_inputs)
+                input_fsf=fsf_file(input_fsf_path)
+                while input_fsf.type == input_fsf.FE_TYPE:
                     other_FES.append(input_fsf)
-                    input_fsf=get_input_fsf(input_fsf.inputs)
-
+                    input_fsf_path=get_input_fsf(input_fsf.inputs)
+                    input_fsf=fsf_file(input_fsf_path)
                 first_fsf=input_fsf
                 one_col=list()
                 if first_fsf.type == first_fsf.FIRST_TYPE:
                     one_col.extend(fsf_to_one_column(first_fsf))
                     one_col.append(",\n")
                     first_csv=fsf_to_csv(first_fsf)
-                    if first_csv[2] > height_of_all_lines:
-                        height_of_all_lines=first_csv[2]
                     if hasattr(first_fsf,'preproc'):
                         preprocdir=os.path.join(first_level_dir,first_fsf.preproc)
                         preproc_fsf=fsf_file((os.path.join(preprocdir,'design.fsf')))
@@ -105,8 +122,6 @@ def main():
                 if FE_fsf.type == FE_fsf.FE_TYPE:
                     one_col.append(",\n")
                     FE_csv=fsf_to_csv(FE_fsf)
-                    if FE_csv[2] > height_of_all_lines:
-                        height_of_all_lines=FE_csv[2]
                     one_col.extend(fsf_to_one_column(FE_fsf))
                     one_col.append(",\n")
                 else:
@@ -115,8 +130,6 @@ def main():
 
                 if ME_fsf:
                     ME_csv=fsf_to_csv(ME_fsf)
-                    if ME_csv[2] > height_of_all_lines:
-                        height_of_all_lines=ME_csv[2]
                     one_col.extend(fsf_to_one_column(ME_fsf))
                     one_col.append(",\n")
                 else:
@@ -139,7 +152,7 @@ def main():
                             print size_of_others
                             temp_csv=fsf_to_csv(other_FES[size_of_others])
                             out_lines=combine_left_right(out_lines,temp_csv[0])
-                            size_of_others=size_of_others-1
+                            size_of_others -= 1
 
                     out_lines=combine_left_right(out_lines,FE_csv[0])
                 if ME_csv:
