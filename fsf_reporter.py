@@ -19,9 +19,11 @@ def main():
     parser.add_argument('-a', '--analysis')
     parser.add_argument('-c', '--config')
     parser.add_argument('-m','--manual_search')
+    parser.add_argument('-s','--simple_output')
     args=parser.parse_args()
     config_file_path=args.config
     feat_folder_path=args.featpath
+    simple_output=args.simple_output
     analysis=args.analysis
     if args.manual_search:
         search_down_method=0
@@ -32,7 +34,7 @@ def main():
     else:
         out_path=args.out
 
-
+    #Check config file before
     if config_file_path is None:
         config_file_path="example.cfg"
     if feat_folder_path and analysis:
@@ -49,6 +51,7 @@ def main():
         print "Config file path not valid. Please specify a valid path"
         exit()
 
+
     config = ConfigParser.RawConfigParser()
     config.read(config_file_path)
 
@@ -60,6 +63,10 @@ def main():
     except NoSectionError:
         print "Config file appears to be corrupt, regenerate with create_config or specify new path"
         exit()
+
+
+
+
 
     height_of_all_lines=0
 
@@ -258,8 +265,7 @@ def main():
             key,contrast=item
             first_cope_names[key]=contrast.name
 
-        #TODO need to figure out logic for not double FEs
-        if excel_output_path:
+        if simple_output is not None:
             excel=excel_results(fe_cope_names,first_cope_names, ME_folders, template_path,excel_output_path)
             excel.main()
     elif feat_folder_path :
