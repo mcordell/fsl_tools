@@ -18,7 +18,10 @@ def main():
     config.set('run_to_atlas','reg_path','experiment_root/study_code/condition/subject/run/reg_name')
     config.set('run_to_atlas','study_code','PV')
     config.set('run_to_atlas','experiment_root',"/mnt/Storage/TAF_fanal/")
-    config.set("run_to_atlas",'standard_brain',"/usr/share/fsl/data/standard/MNI152_T1_2mm_brain")
+
+    config.add_section('fsl_directories')
+    config.set("fsl_directories",'standard_brain',"/usr/local/fsl/data/standard/MNI152_T1_2mm_brain")
+
 
 
     with open('example.cfg', 'wb') as configfile:
