@@ -26,17 +26,19 @@ def write_row(row_name,vertical_start,horizontal_start,me_root_path,worksheet,ho
                         (width,height)=img.size
                         new_width=int(width*scale_factor)
                         new_height=int(height*scale_factor)
+                        cope_value_match=re.search("\d+",copenumber_match.group(0))
+                        fe_cope_num=int(cope_value_match.group(0))
+                        horizontal_count_move=(fe_cope_num-1)*horizontal_move
                         resized=img.resize((new_width,new_height))
                         resized.save("resized_temp.bmp")
-
-                        worksheet.insert_bitmap("resized_temp.bmp",vertical_start,horizontal_start)
+                        worksheet.insert_bitmap("resized_temp.bmp",vertical_start,horizontal_start+horizontal_count_move)
                         os.remove("resized_temp.bmp")
-            horizontal_start+=horizontal_move
+
 
 
 class excel_results:
     def __init__(self, higher_level_names, lower_level_names, ME_paths, template_path, excel_outpath):
-        #TODO everything is done at intialization, need to put this in an another method
+       #TODO everything is done at intialization, need to put this in an another method
         self.higher_level_names=higher_level_names
         self.lower_level_names=lower_level_names
         self.ME_paths=ME_paths
@@ -68,6 +70,16 @@ class excel_results:
         #ws0 = rb.sheet_by_index(0)
         wb= copy.copy(rb)
         ws = wb.get_sheet(0)
+        label_pos=3
+        label_move=8
+        count=1
+        while count <= len(self.higher_level_names):
+            ws.write(0,label_pos,self.higher_level_names[str(count)].strip('\"'))
+            label_pos+=label_move
+            count+=1
+        wb.save('test.xls')
+
+
         vert_start=2
         #noinspection PyUnusedLocal
         horz_start=0
