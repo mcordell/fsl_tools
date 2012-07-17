@@ -2,7 +2,31 @@ __author__ = 'michael'
 import re, subprocess, operator, os
 from xlwt import easyxf
 
+#Exceptions
+class MalformedStructure(Exception):
+    def __init__(self,value):
+        super(MalformedStructure, self).__init__()
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
 
+#Supplementary Classes
+class atlas_loc:
+    Name = "Atlas Location"
+    def __init__(self, condition, subject, run, x, y, z, std_x, std_y, std_z, atlas_percentages):
+        self.condition = condition
+        self.subject = subject
+        self.run = run
+        self.x = x
+        self.y = y
+        self.z = z
+        self.std_x = std_x
+        self.std_y = std_y
+        self.std_z = std_z
+        self.atlas_percentages = atlas_percentages
+
+
+#Supplementary functions
 def get_input_fsf(inputs):
     valid_path=''
     input_count=1
@@ -135,28 +159,6 @@ def combine_for_csv(first_csv,height_of_all_lines=0,preproc_csv=None,FE_csv=None
         out_lines.append(fullline)
     return out_lines
 
-def parse_to_dict(fsf_lines):
-    fsf_dict=dict()
-    fsf_line_key=list()
-    for line in fsf_lines:
-        line=line.strip()
-        if len(line) > 0 and line[0] != "#":
-            set_line=re.search("set [^ ]* [^s]*",line.strip())
-            if set_line:
-                split_line=line.split(" ")
-                if len(split_line) > 3:
-                    #combine and strip mri values that have spaces in them
-                    temp=list()
-                    for i in range (2,len(split_line)):
-                        temp.append(split_line[i])
-                    cleaned=' '.join(temp)
-                    #cleaned=cleaned.strip('\"')
-                    print cleaned
-                else:
-                    cleaned=split_line[2]#.strip('\"')
-                fsf_dict[split_line[1]]=cleaned
-                fsf_line_key.append(split_line[1])
-    return fsf_dict,fsf_line_key
 
 def add_to_dict(atlas, dictionary):
     atlas_percentages = dict()

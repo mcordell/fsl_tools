@@ -1,9 +1,7 @@
 __author__ = 'Michael'
 import re
-from utils import parse_to_dict
 
 class fsf_file:
-
     Name = "FSF File"
     def __init__(self, path):
         #Define constants
@@ -25,6 +23,29 @@ class fsf_file:
                 self.p_value=self.get_value("prob_thresh")
                 self.fill_values_from_dict()
                 self.set_input_type()
+
+    def parse_to_dict(fsf_lines):
+        fsf_dict=dict()
+        fsf_line_key=list()
+        for line in fsf_lines:
+            line=line.strip()
+            if len(line) > 0 and line[0] != "#":
+                set_line=re.search("set [^ ]* [^s]*",line.strip())
+                if set_line:
+                    split_line=line.split(" ")
+                    if len(split_line) > 3:
+                        #combine and strip mri values that have spaces in them
+                        temp=list()
+                        for i in range (2,len(split_line)):
+                            temp.append(split_line[i])
+                        cleaned=' '.join(temp)
+                        #cleaned=cleaned.strip('\"')
+                        print cleaned
+                    else:
+                        cleaned=split_line[2]#.strip('\"')
+                    fsf_dict[split_line[1]]=cleaned
+                    fsf_line_key.append(split_line[1])
+        return fsf_dict,fsf_line_key
 
     def get_value(self,value_id):
         packaged_value="fmri("+value_id+")"
