@@ -1,8 +1,9 @@
 __author__ = 'michael'
-from argparse import ArgumentParser
+from argparse import *
 from os import path,getcwd
 import ConfigParser
 from subprocess import Popen
+import textwrap
 
 def overlay(standard,mask_name,out):
     Popen(['/usr/local/fsl/bin/overlay', '1', '0', standard, '-a', mask_name, '1', '100', out])
@@ -16,11 +17,35 @@ def slice(outname,color=None):
 
 if __name__ == "__main__":
     #Parse options
-    parser = ArgumentParser()
-    parser.add_argument('-p', '--configpath')
-    parser.add_argument('-o', '--out')
-    parser.add_argument('-c', '--color',help='COLOR Choices: g=green b=blue p=pink r=red')
-    parser.add_argument('-m','--mask', required=True)
+    parser = ArgumentParser(
+        prog='mask_to_image',
+        formatter_class=RawDescriptionHelpFormatter,
+        description=textwrap.dedent('''\
+        Mask to image overlays a standard space mask on a standard nifti image. This overlaid image is then sliced with
+        the fsl tool slicer to create a png of the overlay.
+
+        '''),
+        epilog=textwrap.dedent('''\
+            Example usage:
+                mask_to_image -m \'FOC84.nii.gz\' -c p -o \'pink_overlay\'
+
+                This would create two files:
+                        pink_overlay.nii.gz - The nifti file of the overlay
+                        pink_overlay.png - the png version of the overlay. The color of the mask in this picture would be pink
+
+                Other Notes:
+                ------------
+                The standard image is specified in the configuration file. The default path is "example.cfg", however a
+                different path can be specified with the "-c" option. Make sure this points to the standard image you want
+                and the mask is in the same coordinate space.
+
+        ''')
+    )
+    parser.add_argument('-p', '--configpath', help='Default=example.cfg' )
+    parser.add_argument('-o', '--out', help='Output name base, do not include extension. Default=masked_overlaid')
+    parser.add_argument('-c', '--color',help='Mask color in image. Default=yellow. COLOR Choices: g=green b=blue p=pink r=red')
+    parser.add_argument('-m','--mask', help='Mask path',required=True)
+    parser.print_help()
     args = parser.parse_args()
     config_file_path=args.configpath
     output_name=args.out
@@ -47,6 +72,10 @@ if __name__ == "__main__":
     except ConfigParser.NoSectionError:
         print "Config file appears to be corrupt, regenerate with create_config or specify new path"
         exit()
+
+
+
+
 
     #test color input
     if color_arg:
