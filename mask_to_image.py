@@ -1,3 +1,4 @@
+
 __author__ = 'michael'
 from argparse import *
 from os import path,getcwd
@@ -6,7 +7,8 @@ from subprocess import Popen
 import textwrap
 
 def overlay(standard,mask_name,out):
-    Popen(['/usr/local/fsl/bin/overlay', '1', '0', standard, '-a', mask_name, '1', '100', out])
+    overlay_process=Popen(['/usr/local/fsl/bin/overlay', '1', '0', standard, '-a', mask_name, '1', '100', out])
+    overlay_process.wait()
 
 def slice(outname,color=None):
     if color:
@@ -45,7 +47,7 @@ if __name__ == "__main__":
     parser.add_argument('-o', '--out', help='Output name base, do not include extension. Default=masked_overlaid')
     parser.add_argument('-c', '--color',help='Mask color in image. Default=yellow. COLOR Choices: g=green b=blue p=pink r=red')
     parser.add_argument('-m','--mask', help='Mask path',required=True)
-    parser.print_help()
+    #parser.print_help()
     args = parser.parse_args()
     config_file_path=args.configpath
     output_name=args.out
@@ -74,19 +76,22 @@ if __name__ == "__main__":
         exit()
 
 
+    #Find the script file location. Cannot use getcwd because the script could be run from somewhere else and we need to
+    #specify lut locations
+    script_location=path.dirname(__file__)
 
 
 
     #test color input
     if color_arg:
         if color_arg is "g":
-            color_path=path.join(getcwd(),'luts/green.lut')
+            color_path=path.join(script_location,'luts/green.lut')
         elif color_arg is "b":
-            color_path=path.join(getcwd(),'luts/blue.lut')
+            color_path=path.join(script_location,'luts/blue.lut')
         elif color_arg is "p":
-            color_path=path.join(getcwd(),'luts/pink.lut')
+            color_path=path.join(script_location,'luts/pink.lut')
         elif color_arg is "r":
-            color_path=path.join(getcwd(),'luts/red.lut')
+            color_path=path.join(script_location,'luts/red.lut')
     else:
         color_path=None
 
