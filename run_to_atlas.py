@@ -1,8 +1,22 @@
 __author__ = 'michael'
 import argparse, os, ConfigParser
-from utils import *
-from atlas_loc import atlas_loc
 config_file_path='example.cfg'
+import xlwt
+
+class atlas_loc:
+    Name = "Atlas Location"
+    def __init__(self, condition, subject, run, x, y, z, std_x, std_y, std_z, atlas_percentages):
+        self.condition = condition
+        self.subject = subject
+        self.run = run
+        self.x = x
+        self.y = y
+        self.z = z
+        self.std_x = std_x
+        self.std_y = std_y
+        self.std_z = std_z
+        self.atlas_percentages = atlas_percentages
+
 def main():
     #Parse options
     parser = argparse.ArgumentParser()
@@ -20,10 +34,10 @@ def main():
         #noinspection PyUnusedLocal
         structure=config.get('run_to_atlas','structure').strip('/').split('/')
         reg_path=config.get('run_to_atlas','reg_path').strip('/').split('/')
-        reg_name=config.get('run_to_atlas','reg_name')
+        #reg_name=config.get('run_to_atlas','reg_name')
         experiment_root=config.get('run_to_atlas','experiment_root')
         standard_brain=config.get("run_to_atlas","standard_brain")
-        study_code=config.get("run_to_atlas","study_code")
+        #study_code=config.get("run_to_atlas","study_code")
     else:
         print "No Config file found"
         quit()
@@ -41,7 +55,7 @@ def main():
         atlases['Juelich Histological Atlas']=dict()
 
     out_name=args.output
-    study = args.study
+    #study = args.study
     file_input = os.path.join(args.input)
     try:
         with file(file_input, 'r') as original:
