@@ -1,0 +1,16 @@
+/ContrastName1	 "Ctrl"
+/ContrastName2	 "Exr"
+/ContrastName3	 "Ctrl > Exr"
+/ContrastName4	 "Exr > Ctrl"
+/ContrastName5	 "CtrlExr Avg"
+/NumWaves	2
+/NumContrasts	5
+/PPheights		1.000000e+00	1.000000e+00	1.000000e+00	1.000000e+00	5.000000e-01
+/RequiredEffect		1371.074	1371.074	1938.992	1938.992	969.496
+
+/Matrix
+1.000000e+00 0.000000e+00 
+0.000000e+00 1.000000e+00 
+1.000000e+00 -1.000000e+00 
+-1.000000e+00 1.000000e+00 
+1.000000e+00 1.000000e+00 
