@@ -1,4 +1,4 @@
-
+#! /usr/bin/env python
 __author__ = 'michael'
 from argparse import *
 from os import path,getcwd
