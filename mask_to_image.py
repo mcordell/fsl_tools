@@ -19,7 +19,7 @@ if __name__ == "__main__":
     parser = ArgumentParser()
     parser.add_argument('-p', '--configpath')
     parser.add_argument('-o', '--out')
-    parser.add_argument('-c', '--color',help='COLOR Choices: g=green b=blue p=pink ')
+    parser.add_argument('-c', '--color',help='COLOR Choices: g=green b=blue p=pink r=red')
     parser.add_argument('-m','--mask', required=True)
     args = parser.parse_args()
     config_file_path=args.configpath
@@ -40,11 +40,8 @@ if __name__ == "__main__":
     except IOError:
         print "Config file path not valid. Please specify a valid path"
         exit()
-
-
     config = ConfigParser.RawConfigParser()
     config.read(config_file_path)
-
     try:
         standard_image = config.get('fsl_directories', 'standard_brain')
     except ConfigParser.NoSectionError:
@@ -55,6 +52,12 @@ if __name__ == "__main__":
     if color_arg:
         if color_arg is "g":
             color_path=path.join(getcwd(),'luts/green.lut')
+        elif color_arg is "b":
+            color_path=path.join(getcwd(),'luts/blue.lut')
+        elif color_arg is "p":
+            color_path=path.join(getcwd(),'luts/pink.lut')
+        elif color_arg is "r":
+            color_path=path.join(getcwd(),'luts/red.lut')
     else:
         color_path=None
 
