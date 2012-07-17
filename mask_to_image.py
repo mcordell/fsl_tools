@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 __author__ = 'michael'
 from argparse import *
-from os import path,getcwd
+from os import path, readlink
 import ConfigParser
 from subprocess import Popen
 import textwrap
@@ -78,9 +78,10 @@ if __name__ == "__main__":
 
     #Find the script file location. Cannot use getcwd because the script could be run from somewhere else and we need to
     #specify lut locations
-    script_location=path.dirname(__file__)
-
-
+    if path.islink(__file__):
+        script_location=path.dirname(readlink(__file__))
+    else:
+        script_location=path.dirname(__file__)
 
     #test color input
     if color_arg:
