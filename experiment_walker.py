@@ -1,6 +1,6 @@
 __author__ = 'michael'
 import os
-from fsl_tools_exceptions import MalformedStructure
+from utils import MalformedStructure
 
 def determine_struct(structure_string):
     split_up_structure=structure_string.split("/")
