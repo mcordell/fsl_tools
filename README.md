@@ -1,7 +1,7 @@
 fsl_tools
 ======================
 
-A suite of tools/scripts (primarily python) for more efficient work within the FSL neuroimaging suite
+A suite of python tools/scripts for more efficient work within the FSL neuroimaging suite
 
 Tools
 ---------------------------
@@ -14,14 +14,15 @@ Tools
 
 Dependencies by script
 ----------------------------
-*fsf_reporter.py: none (std python library), however, fsf_reporter can use excel_results which has dependencies
-*run_to_atlas.py: xlwt http://pypi.python.org/pypi/xlwt
-*excel_results.py: xlwt,xlrd,xlutils www.python-excel.org and python imaging library (PIL) http://www.pythonware.com/products/pil/
-*mask_to_image.py: requires the lut directory for custom colors
+* fsf_reporter.py: none (std python library), however, fsf_reporter can use excel_results which has dependencies
+* run_to_atlas.py: xlwt http://pypi.python.org/pypi/xlwt
+* excel_results.py: xlwt,xlrd,xlutils www.python-excel.org and python imaging library (PIL) http://www.pythonware.com/products/pil/
+* mask_to_image.py: requires the lut directory for custom colors
 
 
-Supplementary files:
-    fsf_file.py - class for parsing and opening design.fsfs 
-    utils.py - supplementary file that holds helper functions for many of the above scripts
+Supplementary files
+--------------------------
+* fsf_file.py - class for parsing and opening design.fsfs 
+* utils.py - supplementary file that holds helper functions for many of the above scripts
 
 
