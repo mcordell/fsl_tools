@@ -22,6 +22,7 @@ setup(
         entry_points = {
             'console_scripts': [
                 'fsf_reporter = fsl_tools.fsf_reporter:main',
+                'multithreader = fsl_tools.multithreader:main',
                 ],   
         },
 )
