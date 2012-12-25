@@ -31,12 +31,17 @@ class fsf_file:
             self.fill_values_from_dict()
             self.set_input_type()
 
-    
-    
     def parse_to_dict(self,fsf_lines):
+        """
+            Parses the fsf lines into a dict format for easy querying.
+
+            Returns:
+                fsf_dict,fsf_line_key - tuple containing the dict of all keys followed by
+                                        a line key
+        """
         fsf_dict=dict()
         fsf_line_key=list()
-        for line in fsf_lines:
+        for linue in fsf_lines:
             line=line.strip()
             if len(line) > 0 and line[0] != "#":
                 set_line=re.search("set [^ ]* [^s]*",line.strip())
@@ -48,8 +53,6 @@ class fsf_file:
                         for i in range (2,len(split_line)):
                             temp.append(split_line[i])
                         cleaned=' '.join(temp)
-                        #cleaned=cleaned.strip('\"')
-                        print cleaned
                     else:
                         cleaned=split_line[2]#.strip('\"')
                     fsf_dict[split_line[1]]=cleaned
@@ -57,6 +60,16 @@ class fsf_file:
         return fsf_dict,fsf_line_key
 
     def get_value(self,value_id):
+        """ 
+            Getter method for returning the value specified by a key for the dict
+            of this fsf_file. Keys are specified by fmri(key) in the actual fsf files
+
+            Arguments:
+                value_id - the key that value is desired from. This is also the setting provided
+                           in the fsf file.  
+            Returns:
+                value - value for the provided dict key.
+        """
         packaged_value="fmri("+value_id+")"
         if self.values_dict.has_key(value_id):
             return self.values_dict[value_id]
@@ -66,11 +79,13 @@ class fsf_file:
             return None
 
     def get_type(self):
+        """ Getter method for type of fsf file """
         return self.type
 
     def set_type(self):
         """
         Method that determines the type of fsf file that this fsf_file object is.
+        This then sets the type of this fsf_file object
         
         raises:
             BadFsfException: when type of fsf file cannot be determined
@@ -96,7 +111,12 @@ class fsf_file:
         self.type = type
 
     def _load_file(self):
-        """Loads file specified as path, returns lines as list"""
+        """
+            Loads file specified as path, returns lines as list
+        
+            Returns:
+                lines - lines of the fsf file as an array
+        """
         try:
             with file(self.FilePath, 'r') as original:
                 return original.readlines()
@@ -104,7 +124,12 @@ class fsf_file:
             print "Could not open fsf, possibly bad path"
             raise
 
-    def set_input_type(self):
+    def set_input_type(self)
+        """
+            Sets the style of inputs used by the fsf file. This is either
+            neural images from the scanner or lower level analyses. This value is
+            special as it bears on further parsing sttyle.
+        """
         input_type=self.get_value('inputtype')
         if input_type == "2":
             if self.type == self.ME_TYPE or self.type == self.FE_TYPE:
@@ -118,8 +143,12 @@ class fsf_file:
 
 
     def get_analysis_name(self,output_dir_string):
+        """ 
+            Determines the analysis name based on string contents in the output string
+        """
         analysis_name=None
         run=None
+        #TODO marking for analysis determination. Could be more flexible
         if self.type == self.ME_TYPE:
             run=re.search("ME",output_dir_string)
         elif self.type == self.FIRST_TYPE or self.type == self.PRE_TYPE:
