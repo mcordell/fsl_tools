@@ -10,20 +10,29 @@ class fsf_file:
         self.FIRST_TYPE=1
         self.PRE_TYPE=0
         self.FilePath=path
-        self.fsf_lines=self.load_file()
 
-        if self.fsf_lines:
-            self.values_dict,self.fsf_line_key=self.parse_to_dict(self.fsf_lines)
-            self.type=self.get_type()
-            if type:
-                #populate the values common to all fsf's
-                self.output_path=self.get_value("outputdir")
-                self.analysis_name=self.get_analysis_name(self.output_path)
-                self.z_value=self.get_value("z_thresh")
-                self.p_value=self.get_value("prob_thresh")
-                self.fill_values_from_dict()
-                self.set_input_type()
+        #load file and setup
+        self.fsf_lines=self._load_file()
+        self._setup()
 
+    def _setup(self):
+        """
+            Parse the lines within the fsf file to dict and populate values
+            that are common to all fsf files. Parsing the lines is necessary
+            for other functions in fsf_file.
+        """
+        self.values_dict,self.fsf_line_key=self.parse_to_dict(self.fsf_lines)
+        self.set_type()
+        if type:
+            self.output_path=self.get_value("outputdir")
+            self.analysis_name=self.get_analysis_name(self.output_path)
+            self.z_value=self.get_value("z_thresh")
+            self.p_value=self.get_value("prob_thresh")
+            self.fill_values_from_dict()
+            self.set_input_type()
+
+    
+    
     def parse_to_dict(self,fsf_lines):
         fsf_dict=dict()
         fsf_line_key=list()
@@ -57,7 +66,15 @@ class fsf_file:
             return None
 
     def get_type(self):
-        #determine fsf file type
+        return self.type
+
+    def set_type(self):
+        """
+        Method that determines the type of fsf file that this fsf_file object is.
+        
+        raises:
+            BadFsfException: when type of fsf file cannot be determined
+        """
         high_value=self.get_value("level")
         analysis_type=self.get_value("analysis")
         type=None
@@ -74,15 +91,17 @@ class fsf_file:
                 type=self.FIRST_TYPE
             elif analysis_type == "1":
                 type=self.PRE_TYPE
-        return type
+            else:
+                raise BadFsfException("Type of fsf not found. Fsf file probably corrupt.")
+        self.type = type
 
-    def load_file(self):
+    def _load_file(self):
         """Loads file specified as path, returns lines as list"""
         try:
             with file(self.FilePath, 'r') as original:
                 return original.readlines()
         except IOError:
-            print "Could not open fsf"
+            print "Could not open fsf, possibly bad path"
             raise
 
     def set_input_type(self):
@@ -142,7 +161,6 @@ class fsf_file:
 
         number_of_evs=int(self.get_value("evs_orig"))
         number_of_copes=int(self.get_value("ncon_orig"))
-        #noinspection PyUnusedLocal
         design_matrix=[['0' for col in range(number_of_evs+2)] for row in range(number_of_copes+1)]
         design_matrix[0][0]="Cope #"
         design_matrix[0][1]="Cope Name"
@@ -185,9 +203,7 @@ class fsf_file:
         self.inputs=dict()
         self.stripped_inputs=dict()
         #prep matrices
-        #noinspection PyUnusedLocal
         regress_matrix=[['0' for col in range(int(self.number_inputs)+1)] for row in range(number_of_evs+1)]
-        #noinspection PyUnusedLocal
         design_matrix=[['0' for col in range(number_of_evs+2)] for row in range(number_of_copes+1)]
         design_matrix[0][0]="Cope #"
         design_matrix[0][1]="Cope Name"
