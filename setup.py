@@ -15,7 +15,8 @@ setup(
         install_requires=[
             'xlrd',
             'xlwt',
-            'xlutils'
+            'xlutils',
+            'pil'
             ],
         packages = ['fsl_tools'],
         entry_points = {
@@ -23,7 +24,4 @@ setup(
                 'fsf_reporter = fsl_tools.fsf_reporter:main',
                 ],   
         },
-
-        
-        
 )
