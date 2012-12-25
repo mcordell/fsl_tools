@@ -20,7 +20,7 @@ setup(
         packages = ['fsl_tools'],
         entry_points = {
             'console_scripts': [
-                'fsf_reporter = fsf_tools.fsf_reporter:main',
+                'fsf_reporter = fsl_tools.fsf_reporter:main',
                 ],   
         },
 
