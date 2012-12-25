@@ -3,33 +3,40 @@ from  threading import Thread
 from Queue import Queue
 import time, argparse
 from subprocess import Popen, PIPE
+from datetime import datetime
 
-#number of concurrent threads
-number_of_threads=2
+def append_to_log(message, use_time_stamp=True):
+    """
+    Simple log file method
+    """
+    with open('./feat_file_log.txt','a') as log_file:
+        if use_time_stamp:
+            time_stamp=datetime.now().strftime('[%Y-%m-%d %H:%m]')
+        else:
+            time_stamp='-'
+        log_file.write(time_stamp+" "+message)
+    log_file.close()
 
-def Runner(queue):
+def runner(queue):
     while True:
         fsf_location= queue.get()
         print fsf_location
-
-        file_id=open('./feat_file_log.txt','a')
-        file_id.write('Open file name: ' + fsf_location+'\n')
-        file_id.close()
-        file_id=open('./feat_file_log.txt','a')
+        append_to_log('Open file name: ' + fsf_location+'\n')
         command=['feat',fsf_location]
         process_object=Popen(command, stdout=PIPE, stderr=PIPE)
         sout,serr=process_object.communicate()
         if not process_object.returncode:
-            file_id.write('Finished Cleanly: '+fsf_location+'\n')
+            append_to_log('Finished Cleanly: '+fsf_location+'\n')
         else:
-            file_id.write('ERROR:            '+fsf_location+'\n')
+            append_to_log('ERROR:            '+fsf_location+'\n')
             for line in serr:
-                file_id.write(line)
+                append_to_log(line,use_time_stamp=False)
         queue.task_done()
 
 def searcher(queue, file_id):
     """
-
+    Method to search the queue textfile for new lines that were added while
+    the multithreader is runing
     """
     while True:
         try:
@@ -49,29 +56,25 @@ def searcher(queue, file_id):
 if __name__ == "__main__":
     #load configuration file
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--cores')
+    parser.add_argument('-c', '--cores',default=2)
+    parser.add_argument('-q', '--queue_file',default='featfiles.txt')
     args=parser.parse_args()
     number_of_threads=args.cores
-    if number_of_threads is None:
-        number_of_threads=2
-    else:
-        number_of_threads=int(number_of_threads)
+    queue_file_path=args.queue_file
 
     #create queue
     queue=Queue()
 
     #open list of filenames and populate the queue with it
     try:
-        file_list_id=open('./featfiles.txt','r')
+        file_list_id=open(queue_file_path,'r')
         string_array=file_list_id.readlines()
         for item in string_array:
             stripped_item=item.strip('\n')
             queue.put(stripped_item)
-    except:
-        print "No featfiles.txt here"
+    except IOError:
+        print "We are missing the queue file. Default is featfiles.txt"
         exit()
-
-
 
     #start the searcher thread
     s_worker = Thread(target=searcher, args=(queue,file_list_id,))
@@ -80,7 +83,7 @@ if __name__ == "__main__":
 
     #set up the runner threads
     for i in range(number_of_threads):
-        worker = Thread(target=Runner, args=(queue,))
+        worker = Thread(target=runner, args=(queue,))
         worker.setDaemon(True)
         worker.start()
 
@@ -88,7 +91,7 @@ if __name__ == "__main__":
     while True:
         #wait for everything to finish
         queue.join()
-        #check to make sure nothing is added to the text file while we are rsyncing
+        #check to make sure nothing is added to the text file while we are running
         line=file_list_id.readline()
         if line:
             #if we found something push it back into the queue and start over
