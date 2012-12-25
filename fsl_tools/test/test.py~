@@ -1,0 +1,38 @@
+__author__ = 'michael'
+import sys
+import os.path
+sys.path.append(
+    os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
+from fsf_file import fsf_file
+
+from exceptions import IOError
+from fsf_file import BadFsfException
+
+
+import unittest
+
+
+class test_fsf_bad_input(unittest.TestCase):
+    def runTest(self):
+        bad_path=os.path.join(os.path.dirname(__file__), "this_is_a_bad_path.fsf")
+        self.assertRaises(IOError,fsf_file,bad_path)
+
+class test_preproc_corrupt_input(unittest.TestCase):
+    def runTest(self):
+        corrupt_path=os.path.join(os.path.dirname(__file__), "corrupt.fsf")
+        self.assertRaises(BadFsfException,fsf_file,corrupt_path)
+
+class TestPreproc(unittest.TestCase):
+    def setUp(self):
+        self.preproc = fsf_file(os.path.join(os.path.dirname(__file__),"pre.fsf"))
+    def tearDown(self):
+        self.preproc = None
+    def test_width(self):
+        pre_csv_lines,width,height=pre_to_csv(self.preproc)
+        self.assertEqual(width,2)
+
+if __name__ == '__main__':
+    unittest.main()
+
+
+
