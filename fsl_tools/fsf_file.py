@@ -1,5 +1,6 @@
 __author__ = 'Michael'
 import re
+from os import path
 from utils import binary_value_to_yes_no
 
 class fsf_file:
@@ -157,7 +158,7 @@ class fsf_file:
         elif self.type == self.FE_TYPE:
             run=re.search("FE\d*",output_dir_string)
         if run:
-            analysis_name=self.extract_value_from_string(output_dir_string,run.end())
+            analysis_name=self.extract_base_name(output_dir_string,run.end())
             if type == self.ME_TYPE:
                 analysis_name=self.strip_cope(analysis_name)
         return analysis_name
@@ -276,6 +277,7 @@ class fsf_file:
         self.regressor_matrix=regress_matrix
 
     def fill_ME(self):
+        #TODO hard_coded pattern here that needs to be removed
         subject_pattern="x\d\d\d"
         self.number_subjects=self.get_value("npts")
         self.inputs=dict()
@@ -285,15 +287,26 @@ class fsf_file:
             index=str(ind)
             input_value=self.get_value("feat_files("+index+")")
             self.inputs[index]=input_value
-            input_value=input_value.strip("\n")
-            input_value=input_value.strip('\"')
             input_value=self.strip_cope(input_value)
             self.stripped_inputs[index]=input_value
-
             subject_match=re.search(subject_pattern,input_value)
             if subject_match:
                 self.subjects[index]=subject_match.group()
 
+    def clean_fsf_string(self,fsf_value):
+        """
+            Removes unnecessary, common characters from fsf values
+
+            Attributes:
+               fsf_value - the fsf value to be cleaned
+            Returns:
+                cleaned_value - the cleaned fsf value   
+
+        """
+        fsf_value=fsf_value.strip("\n")
+        cleaned_value=fsf_value.strip('\"')
+        return cleaned_value
+    
         
     def fill_values_from_dict(self):
         if self.type == self.PRE_TYPE:
@@ -306,9 +319,10 @@ class fsf_file:
             self.fill_ME()
 
     def strip_root(self,line):
+        #TODO this method relies on our naming convention, needs to be stripped out
         run=re.search("r\d/",line)
         if run:
-            out=self.extract_value_from_string(line,run.end())
+            out=self.extract_base_name(line,run.end())
             out='./'+out
         else:
             out=line
@@ -316,25 +330,25 @@ class fsf_file:
 
 
     def strip_cope(self,line):
-        cope=re.search("_*cope",line)
-        if cope:
-            out=line[0:cope.start()]
-            out=out.strip()
-        else:
-            out=line
-        return out
+        #TODO this method relies on our naming convention, needs to be stripped out
+        return re.sub('_*cope','',line)
 
-    def extract_value_from_string(self,fsf_line, end):
+    def extract_base_name(self,fsf_dir_value, end):
         """
-        In long directory strings within certain fsf values, it is necessary to extract a string
+        A useful method for cleaning a directory string within an fsf value and
+        returning the base name of the directory.
 
+        Attributes:
+            fsf_dir_value - input string from an fsf value that basename is desired
+
+        Returns:
+            basename - basename of the directory string provided
         """
-        #TODO refactor using path
-        value=fsf_line[end:len(fsf_line)]
-        value=value.strip("\n")
+        value=fsf_dir_value.strip("\n")
         value=value.strip()
         value=value.replace('"','')
-        return value
+        basename=path.basename(value)
+        return basename
 
 
 class ev:
