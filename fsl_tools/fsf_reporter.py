@@ -1,4 +1,5 @@
 __author__ = 'Michael'
+
 import argparse, os, re, ConfigParser
 from utils import fsf_to_csv,fsf_to_one_column,write_report,combine_for_csv, get_input_fsf,combine_left_right
 from fsf_file import fsf_file
