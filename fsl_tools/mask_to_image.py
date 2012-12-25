@@ -1,13 +1,15 @@
-#! /usr/bin/env python
+#! /Library/Frameworks/Python.framework/Versions/Current/bin/python
+
 __author__ = 'michael'
 from argparse import *
 from os import path, readlink
+import os
 import ConfigParser
 from subprocess import Popen
 import textwrap
 
 def overlay(standard,mask_name,out):
-    overlay_process=Popen(['/usr/local/fsl/bin/overlay', '1', '0', standard, '-a', mask_name, '1', '100', out])
+    overlay_process=Popen(['/usr/local/fsl/bin/overlay', '1', '0', standard, '-a', mask_name, '.01', '100', out])
     overlay_process.wait()
 
 def slice(outname,color=None):
@@ -55,7 +57,9 @@ if __name__ == "__main__":
     mask=args.mask
     #Check if config file is specified
     if config_file_path is None:
-        config_file_path="example.cfg"
+        config_file_path=os.path.join(os.path.dirname(os.path.realpath(__file__)),"example.cfg")
+        print config_file_path
+
 
     if output_name is None:
         output_name='masked_overlaid'
@@ -93,10 +97,17 @@ if __name__ == "__main__":
             color_path=path.join(script_location,'luts/pink.lut')
         elif color_arg is "r":
             color_path=path.join(script_location,'luts/red.lut')
+        elif color_arg is "y":
+            color_path=path.join(script_location,'luts/yellow.lut')
+        elif color_arg is "o":
+            color_path=path.join(script_location,'luts/orange.lut')
+        elif color_arg is "u":
+            color_path=path.join(script_location,'luts/purple.lut')
     else:
         color_path=None
 
     overlay(standard_image,mask,output_name)
+
     slice(output_name,color_path)
 
 

@@ -13,7 +13,7 @@ class fsf_file:
         self.fsf_lines=self.load_file()
 
         if self.fsf_lines:
-            self.values_dict,self.fsf_line_key=parse_to_dict(self.fsf_lines)
+            self.values_dict,self.fsf_line_key=self.parse_to_dict(self.fsf_lines)
             self.type=self.get_type()
             if type:
                 #populate the values common to all fsf's
@@ -24,7 +24,7 @@ class fsf_file:
                 self.fill_values_from_dict()
                 self.set_input_type()
 
-    def parse_to_dict(fsf_lines):
+    def parse_to_dict(self,fsf_lines):
         fsf_dict=dict()
         fsf_line_key=list()
         for line in fsf_lines:

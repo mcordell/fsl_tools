@@ -62,6 +62,8 @@ class fsf_file_inputtype(unittest.TestCase):
     def test_c_image_version(self):
         self.assertEqual(self.copeimage.input_type,2)
 
+
+
 if __name__ == '__main__':
     unittest.main()
 

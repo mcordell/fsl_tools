@@ -1,7 +1,8 @@
 __author__ = 'michael'
-import argparse, os, ConfigParser
-config_file_path='example.cfg'
+import argparse, os, ConfigParser, subprocess
+config_file_path='hal_configfe.cfg'
 import xlwt
+from utils import get_atlas_location,sort_atlas_locations, prep_worksheet, write_atlas_line
 
 class atlas_loc:
     Name = "Atlas Location"
@@ -34,10 +35,10 @@ def main():
         #noinspection PyUnusedLocal
         structure=config.get('run_to_atlas','structure').strip('/').split('/')
         reg_path=config.get('run_to_atlas','reg_path').strip('/').split('/')
-        #reg_name=config.get('run_to_atlas','reg_name')
+        reg_name=config.get('run_to_atlas','reg_name')
         experiment_root=config.get('run_to_atlas','experiment_root')
         standard_brain=config.get("run_to_atlas","standard_brain")
-        #study_code=config.get("run_to_atlas","study_code")
+        study_code=config.get("run_to_atlas","study_code")
     else:
         print "No Config file found"
         quit()
@@ -70,6 +71,7 @@ def main():
     atlas_locations = list()
 
 
+
     for seed_line in seed_lines:
         parsed_line = seed_line.strip().split(',')
         condition = parsed_line[0]
@@ -89,6 +91,7 @@ def main():
                     registration_path=os.path.join(registration_path,path_part)
                 except NameError:
                     registration_path=''
+        print registration_path
         if registration_path:
             example_func = os.path.join(registration_path, 'example_func')
             xfm = os.path.join(registration_path, 'example_func2standard.mat')
@@ -100,7 +103,7 @@ def main():
                 std_y = std_space_coords[1]
                 std_z = std_space_coords[2]
                 std_coords=(std_x,std_y,std_z)
-
+                print std_coords
                 ##Have Standard Coordinates
                 atlas_percentages=dict()
                 for atlas in atlases:

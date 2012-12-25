@@ -19,7 +19,7 @@ def Runner(queue):
         command=['feat',fsf_location]
         process_object=Popen(command, stdout=PIPE, stderr=PIPE)
         sout,serr=process_object.communicate()
-        if process_object.returncode == 0:
+        if not process_object.returncode:
             file_id.write('Finished Cleanly: '+fsf_location+'\n')
         else:
             file_id.write('ERROR:            '+fsf_location+'\n')

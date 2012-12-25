@@ -11,11 +11,7 @@ def die(message):
         print "Unexplained Exit"
     exit()
 
-
 def main():
-    """
-
-    """
     global first_level_dir, ME_folders, first_fsf, FE_fsf, one_col, ME_csv, FE_csv, preproc_csv, first_csv, FE_dir, FE_dir, ME_dir, ME_dir, out_lines
     template_path="template2.xls"
     height_of_all_lines=0

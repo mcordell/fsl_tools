@@ -3,6 +3,15 @@ import  os, xlrd, re
 from xlutils import copy
 from PIL import Image
 
+def get_z_value(report_path):
+    with open(report_path, 'r') as f:
+        lines=f.readlines()
+    for i in range(0,len(lines)):
+        line=lines[i]
+        line_match=re.search("<IMG BORDER=0 SRC=.ramp.gif>",line)
+        if line_match:
+            return lines[i+1]
+
 def write_row(row_name,vertical_start,horizontal_start,me_root_path,worksheet,horizontal_move,scale_factor):
     """ Writes a row in a given worksheet, searching though a me_root_path, using
         the results images within that root directory.row_name is written above each image in the row
@@ -17,7 +26,9 @@ def write_row(row_name,vertical_start,horizontal_start,me_root_path,worksheet,ho
             if os.path.isdir(cope_dir):
                 worksheet.write(vertical_start-1,horizontal_start,row_name)
                 rendered_thresh=os.path.join(cope_dir,"rendered_thresh_zstat1.png")
+                report_poststats=os.path.join(cope_dir,"report_poststats.html")
                 cluster_max_path=os.path.join(cope_dir,"cluster_zstat1_std.txt")
+                #if os.path.isfile(rendered_thresh):
                 if os.path.isfile(rendered_thresh) and os.path.isfile(cluster_max_path):
                     with file(cluster_max_path,'r') as cluster_file:
                         cluster_lines= cluster_file.readlines()
@@ -32,6 +43,11 @@ def write_row(row_name,vertical_start,horizontal_start,me_root_path,worksheet,ho
                         resized=img.resize((new_width,new_height))
                         resized.save("resized_temp.bmp")
                         worksheet.insert_bitmap("resized_temp.bmp",vertical_start,horizontal_start+horizontal_count_move)
+                        halfway=((fe_cope_num-1)*horizontal_move)+(.5*horizontal_move)
+                        halfway=int(halfway)
+                        z=get_z_value(report_poststats)
+                        resized=img.resize((new_width,new_height))
+                        worksheet.write(vertical_start-1,horizontal_start+halfway,z.rstrip())
                         os.remove("resized_temp.bmp")
 
 
@@ -74,8 +90,9 @@ class excel_results:
         label_move=8
         count=1
         while count <= len(self.higher_level_names):
-            ws.write(0,label_pos,self.higher_level_names[str(count)].strip('\"'))
-            label_pos+=label_move
+            if label_pos < 256:
+                ws.write(0,label_pos,self.higher_level_names[str(count)].strip('\"'))
+                label_pos+=label_move
             count+=1
         wb.save('test.xls')
 

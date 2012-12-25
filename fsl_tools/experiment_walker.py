@@ -22,7 +22,8 @@ def walk_dir(path,level,ignore_words,end_level):
                 main.append([dir_list_item,walk_dir(path_dir,level+1,ignore_words,end_level)])
     return main
 
-def atomize_directory(directory_lists,level_count,end_level,directory_hierarchy, passed_dict=dict(),atoms=None):
+def atomize_directory(directory_lists, level_count, end_level, directory_hierarchy, passed_dict=None, atoms=None):
+    if not passed_dict: passed_dict = dict()
     if level_count == end_level:
         item_type=directory_hierarchy[level_count]
         for item in directory_lists:
@@ -30,7 +31,7 @@ def atomize_directory(directory_lists,level_count,end_level,directory_hierarchy,
             atom[item_type]=item
             atoms.append(atom)
     elif level_count < end_level:
-        if level_count == 0:
+        if not level_count:
             atoms=list()
             for item in directory_lists:
                 label=item[0]
@@ -54,14 +55,15 @@ def experiment_walk(config_line,root_dir,ignore_list):
         directory_by_type[type]=list()
     level_count=len(directory_hierarchy)-1
     directory_listing=walk_dir(root_dir,0,ignore_list,level_count)
-    atoms=atomize_directory(directory_listing,0,2,directory_hierarchy)
+    atoms=atomize_directory(directory_listing,0,level_count,directory_hierarchy)
     for atom in atoms:
         count=0
         for type in directory_hierarchy:
             directory_list=directory_by_type[type]
-            atom_value_for_type=atom[type]
-            if directory_list.count(atom_value_for_type) == 0:
-                directory_list.append(atom_value_for_type)
+            if type in atom:
+                atom_value_for_type=atom[type]
+                if not directory_list.count(atom_value_for_type):
+                    directory_list.append(atom_value_for_type)
     return atoms,directory_by_type
 #    split_root_dir=root_dir.split("/")
 #    for root,dir,folder in os.walk(root_dir):

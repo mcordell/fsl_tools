@@ -10,6 +10,20 @@ class MalformedStructure(Exception):
     def __str__(self):
         return repr(self.value)
 
+def experiment_loop(root, conditions, subjects, runs):
+    return_paths=list()
+    for con in conditions:
+        con_path=os.path.join(root,con)
+        if os.path.exists(con_path):
+            for subject in subjects:
+                subj_path=os.path.join(con_path,subject)
+                if os.path.exists(subj_path):
+                    for run in runs:
+                        run_path=os.path.join(subj_path,run)
+                        if os.path.exists(run_path):
+                            return_paths.append(run_path)
+    return return_paths
+
 #Supplementary Classes
 class atlas_loc:
     Name = "Atlas Location"
