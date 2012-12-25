@@ -3,10 +3,10 @@ import sys
 import os.path
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
-from fsl_tools.fsf_file import fsf_file
+from fsf_file import fsf_file
 from exceptions import IOError
-from fsl_tools.fsf_file import BadFsfException
-from fsl_tools.utils import pre_to_csv,me_to_csv,get_feat_directory
+from fsf_file import BadFsfException
+from utils import pre_to_csv,me_to_csv,get_feat_directory
 import unittest
 
 
@@ -49,6 +49,21 @@ class TestGetFeatDirectory(unittest.TestCase):
     def test_no_slash(self):
         path='/Users/some/path/presumablyanalysisname.gfeat'
         self.assertEqual(get_feat_directory(path),'/Users/some/path/presumablyanalysisname.gfeat/')
+
+class TestCleanFsfStringvalue(unittest.TestCase):
+    def setUp(self):
+        #setup an fsf file for testing
+        self.ME= fsf_file(os.path.join(os.path.dirname(__file__),"ME.fsf"))
+    def test_remove_new_line(self):
+        self.assertEquals(self.ME.clean_fsf_string('/this/is/path\n'),'/this/is/path')
+    def test_remove_quotes(self):
+        self.assertEquals(self.ME.clean_fsf_string('\"/this/is/path\"'),'/this/is/path')
+    def test_remove_quotes_and_new_line(self):
+        self.assertEquals(self.ME.clean_fsf_string('\"/this/is/path\"\n'),'/this/is/path')
+    def tearDown(self):
+        self.ME = None
+
+
 
 class fsf_file_inputtype(unittest.TestCase):
     def setUp(self):
