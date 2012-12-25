@@ -1,4 +1,4 @@
-__author__ = 'michael'
+_author__ = 'michael'
 import re, subprocess, operator, os
 from xlwt import easyxf
 
@@ -10,12 +10,21 @@ class MalformedStructure(Exception):
     def __str__(self):
         return repr(self.value)
 
-def binary_value_to_yes_no(self,value):
-    if value == "1":
-        value = "Y"
-    elif value is not None:
-        value = "N"
-    return value
+def binary_value_to_yes_no(binary_value):
+    """
+        Converts a binary value to a yes/no value
+
+        Attributes:
+            binary_value - binary value to be converted
+        
+        Returns:
+            yn_value - binary value as either a Y or a N
+    """
+    if binary_value == "1":
+        yn_value = "Y"
+    elif binary_value is not None:
+        yn_value = "N"
+    return yn_value
 
 
 def experiment_loop(root, conditions, subjects, runs):
