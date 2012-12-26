@@ -1,5 +1,6 @@
 __author__ = 'Michael'
 import re
+from fsl_tools.utils import binary_value_to_yes_no
 
 class fsf_file:
     Name = "FSF File"
@@ -124,7 +125,7 @@ class fsf_file:
             print "Could not open fsf, possibly bad path"
             raise
 
-    def set_input_type(self)
+    def set_input_type(self):
         """
             Sets the style of inputs used by the fsf file. This is either
             neural images from the scanner or lower level analyses. This value is
@@ -161,19 +162,12 @@ class fsf_file:
                 analysis_name=self.strip_cope(analysis_name)
         return analysis_name
 
-    def binary_value_to_yes_no(self,value):
-        if value == "1":
-            value = "Y"
-        elif value is not None:
-            value = "N"
-        return value
-
     def fill_pre(self):
         self.tr=self.get_value("tr")
         self.smoothing=self.get_value("smooth")
         self.number_volumes=self.get_value("npts")
         self.removed_volumes=self.get_value("ndelete")
-        self.motion_correction=self.binary_value_to_yes_no(self.get_value("mc"))
+        self.motion_correction=binary_value_to_yes_no(self.get_value("mc"))
         self.brain_thresh=self.get_value("brain_thresh")
         input_value=self.get_value("feat_files(1)")
         if input_value:
@@ -201,8 +195,8 @@ class fsf_file:
             ev_1.name=self.get_value("evtitle"+index)
             ev_1.file_path=self.get_value("custom"+index)
             ev_1.set_convolution(self.get_value("convolve"+index))
-            ev_1.temporal_deriv=self.binary_value_to_yes_no(self.get_value("deriv_yn"+index))
-            ev_1.temporal_filtering=self.binary_value_to_yes_no(self.get_value("tempfilt_yn"+index))
+            ev_1.temporal_deriv=binary_value_to_yes_no(self.get_value("deriv_yn"+index))
+            ev_1.temporal_filtering=binary_value_to_yes_no(self.get_value("tempfilt_yn"+index))
             design_matrix[0][ind+1]=ev_1.name
             self.evs[index]=ev_1
 
@@ -340,7 +334,7 @@ class fsf_file:
 
     def get_fsf_value(self,fsf_line, end):
         """ return a value from an fsf line
-            fsf lines have a perdictable structure, where vaiable is defined and then value follows
+            fsf lines have a predictable structure, where variable is defined and then value follows
             this function returns of a clean copy of the variable in supplied fsf_line, where value is everything in the
             line after the supplied variable end. newline characters, " , and leading spaces are stripped
         """

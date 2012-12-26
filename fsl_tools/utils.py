@@ -10,6 +10,14 @@ class MalformedStructure(Exception):
     def __str__(self):
         return repr(self.value)
 
+def binary_value_to_yes_no(self,value):
+    if value == "1":
+        value = "Y"
+    elif value is not None:
+        value = "N"
+    return value
+
+
 def experiment_loop(root, conditions, subjects, runs):
     return_paths=list()
     for con in conditions:
