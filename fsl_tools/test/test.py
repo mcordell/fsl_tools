@@ -3,10 +3,10 @@ import sys
 import os.path
 sys.path.append(
     os.path.abspath(os.path.join(os.path.dirname(__file__), os.path.pardir)))
-from fsf_file import fsf_file
+from fsl_tools.fsf_file import fsf_file
 from exceptions import IOError
-from fsf_file import BadFsfException
-from utils import pre_to_csv,me_to_csv,get_feat_directory
+from fsl_tools.fsf_file import BadFsfException
+from fsl_tools.utils import pre_to_csv,me_to_csv,get_feat_directory
 import unittest
 
 
