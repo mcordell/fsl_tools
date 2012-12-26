@@ -164,6 +164,9 @@ class fsf_file:
         return analysis_name
 
     def fill_pre(self):
+        """
+            Populate fsf file values for a preproc fsf file.
+        """
         self.tr=self.get_value("tr")
         self.smoothing=self.get_value("smooth")
         self.number_volumes=self.get_value("npts")
@@ -175,11 +178,14 @@ class fsf_file:
             self.input_file=self.strip_root(input_value)
 
     def fill_first_level(self):
+        """
+            Populate fsf file values for a first level fsf file.
+        """
         input_value=self.get_value("feat_files(1)")
         if input_value:
             self.input_file=self.strip_root(input_value)
+            #TODO remove preproc pattern in favor of a variable
             preproc_match=re.search("preproc.*feat",input_value)
-            #TODO inconsistent methodology here
             if preproc_match:
                 self.preproc=input_value[preproc_match.start():preproc_match.end()]
 
@@ -192,12 +198,12 @@ class fsf_file:
         self.cons=dict()
         for ind in range(1,number_of_evs+1):
             index=str(ind)
-            ev_1=ev()
-            ev_1.name=self.get_value("evtitle"+index)
-            ev_1.file_path=self.get_value("custom"+index)
-            ev_1.set_convolution(self.get_value("convolve"+index))
-            ev_1.temporal_deriv=binary_value_to_yes_no(self.get_value("deriv_yn"+index))
-            ev_1.temporal_filtering=binary_value_to_yes_no(self.get_value("tempfilt_yn"+index))
+            local_ev=ev()
+            local_ev.name=self.get_value("evtitle"+index)
+            local_ev.file_path=self.get_value("custom"+index)
+            local_ev.set_convolution(self.get_value("convolve"+index))
+            local_ev.temporal_deriv=binary_value_to_yes_no(self.get_value("deriv_yn"+index))
+            local_ev.temporal_filtering=binary_value_to_yes_no(self.get_value("tempfilt_yn"+index))
             design_matrix[0][ind+1]=ev_1.name
             self.evs[index]=ev_1
 
