@@ -329,6 +329,7 @@ class fsf_file:
         In long directory strings within certain fsf values, it is necessary to extract a string
 
         """
+        #TODO refactor using path
         value=fsf_line[end:len(fsf_line)]
         value=value.strip("\n")
         value=value.strip()
