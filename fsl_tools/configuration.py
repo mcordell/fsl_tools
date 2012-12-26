@@ -2,7 +2,9 @@ import ConfigParser
 from ConfigParser import NoSectionError, NoOptionError
 
 class Configuration:
-    """docstring for Configuration"""
+    """
+        Object for reading and holding variables from the configuration file
+    """
     name = "Configuration"
 
     def __init__(self, config_path):
