@@ -1,6 +1,6 @@
 __author__ = 'Michael'
 import re
-from fsl_tools.utils import binary_value_to_yes_no
+from utils import binary_value_to_yes_no
 
 class fsf_file:
     Name = "FSF File"
@@ -42,7 +42,7 @@ class fsf_file:
         """
         fsf_dict=dict()
         fsf_line_key=list()
-        for linue in fsf_lines:
+        for line in fsf_lines:
             line=line.strip()
             if len(line) > 0 and line[0] != "#":
                 set_line=re.search("set [^ ]* [^s]*",line.strip())
@@ -157,7 +157,7 @@ class fsf_file:
         elif self.type == self.FE_TYPE:
             run=re.search("FE\d*",output_dir_string)
         if run:
-            analysis_name=self.get_fsf_value(output_dir_string,run.end())
+            analysis_name=self.extract_value_from_string(output_dir_string,run.end())
             if type == self.ME_TYPE:
                 analysis_name=self.strip_cope(analysis_name)
         return analysis_name
@@ -308,20 +308,12 @@ class fsf_file:
     def strip_root(self,line):
         run=re.search("r\d/",line)
         if run:
-            out=self.get_fsf_value(line,run.end())
+            out=self.extract_value_from_string(line,run.end())
             out='./'+out
         else:
             out=line
         return out
 
-    def strip_experiment_root(self,line):
-        run=re.search("TAF_fanal/",line)
-        if run:
-            out=self.get_fsf_value(line,run.end())
-            out='./'+out
-        else:
-            out=line
-        return out
 
     def strip_cope(self,line):
         cope=re.search("_*cope",line)
@@ -332,11 +324,10 @@ class fsf_file:
             out=line
         return out
 
-    def get_fsf_value(self,fsf_line, end):
-        """ return a value from an fsf line
-            fsf lines have a predictable structure, where variable is defined and then value follows
-            this function returns of a clean copy of the variable in supplied fsf_line, where value is everything in the
-            line after the supplied variable end. newline characters, " , and leading spaces are stripped
+    def extract_value_from_string(self,fsf_line, end):
+        """
+        In long directory strings within certain fsf values, it is necessary to extract a string
+
         """
         value=fsf_line[end:len(fsf_line)]
         value=value.strip("\n")
