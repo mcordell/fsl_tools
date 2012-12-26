@@ -20,6 +20,7 @@ class Configuration:
         self.FE_dir=self.read_option('Analysis Directories','fe_dir') 
         self.ME_dir=self.read_option('Analysis Directories','me_dir') 
         self.template_path=self.read_option('Analysis Directories','template')
+        self.me_pattern=self.read_option('Match Patterns','me_pattern')
         
     def read_option(self,category, key):
         try:

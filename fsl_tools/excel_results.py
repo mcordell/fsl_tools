@@ -52,30 +52,37 @@ def write_row(row_name,vertical_start,horizontal_start,me_root_path,worksheet,ho
 
 
 
-class excel_results:
-    def __init__(self, higher_level_names, lower_level_names, ME_paths, template_path, excel_outpath):
-       #TODO everything is done at intialization, need to put this in an another method
-        self.higher_level_names=higher_level_names
-        self.lower_level_names=lower_level_names
+class ExcelResults:
+    def __init__(self,col_labels,row_labels, ME_paths,excel_outpath,configuration, scale_factor=.65, 
+                 vertical_move=27, horizontal_move=8):
+        self.col_labels=col_labels
+        self.row_labels=row_labels
         self.ME_paths=ME_paths
-        self.template_path=template_path
+        self.template_path=configuration.template_path
         self.excel_outpath=excel_outpath
-        self.scale_factor=.65
-        self.vertical_move=27
-        self.horizontal_move=8
+        self.scale_factor=scale_factor
+        self.vertical_move=vertical_move
+        self.horizontal_move=horizontal_move
+        self.cope_match_pattern=configuration.cope_pattern
 
     def determine_cope(self,in_string):
-        """Helper function for determining a cope # from a give string "in_string" """
-        global cope_number
-        copenumber_match=re.search("cope\d+",in_string)
-        if copenumber_match:
-            number_match=re.search("\d+",copenumber_match.group(0))
+        #TODO could be moved somewhereelse
+        """
+        Helper function for determining a cope # from a give string "in_string" 
+        
+        Attributes:
+            in_string - the string hopefully containing a cope number/pattern
+
+        Returns:
+            cope_number - the number of the cope determined from the in_string
+        """
+        cope_number_match=re.search(self.cope_match_pattern,in_string)
+        if cope_number_match:
+            number_match=re.search("\d+",cope_number_match.group(0))
             if number_match:
                 cope_number=number_match.group(0)
         if cope_number:
             return cope_number
-
-
 
     def main(self):
         #open template file
@@ -89,9 +96,9 @@ class excel_results:
         label_pos=3
         label_move=8
         count=1
-        while count <= len(self.higher_level_names):
+        while count <= len(self.col_labels):
             if label_pos < 256:
-                ws.write(0,label_pos,self.higher_level_names[str(count)].strip('\"'))
+                ws.write(0,label_pos,self.col_labels[str(count)].strip('\"'))
                 label_pos+=label_move
             count+=1
         wb.save('test.xls')
@@ -109,7 +116,7 @@ class excel_results:
                 i=str(ind)
                 horz_start=0
                 try:
-                    name=self.lower_level_names[i]
+                    name=self.row_labels[i]
                 except KeyError:
                     name=''
                     print "Higher level Mixed effects not found in lower level copes. Mismatch?"

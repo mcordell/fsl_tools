@@ -14,7 +14,7 @@ def die(message):
     exit()
 
 def main():
-    global first_level_dir, ME_folders, first_fsf, FE_fsf, one_col, ME_csv, FE_csv, preproc_csv, first_csv, FE_dir, FE_dir, ME_dir, ME_dir, out_lines
+    global ME_folders, first_fsf, FE_fsf, one_col, ME_csv, FE_csv, preproc_csv, first_csv, FE_dir, FE_dir, ME_dir, ME_dir, out_lines
     template_path="template2.xls"
     height_of_all_lines=0
 
@@ -54,17 +54,15 @@ def main():
 
     configuration=Configuration(config_file_path)
 
-
-
     #find the location of the feat folders within the directories from the config file
     if analysis:
-        ###Search down switch
+        #Search down switch
         if search_down_method:
             #find ME directories that match analysis pattern
             ME_list=os.listdir(os.path.join(configuration.ME_dir))
             ME_folders=list()
             for folder in ME_list:
-                analysis_match=re.search(analysis+"_cope", folder)
+                analysis_match=re.search(analysis+configuration.me_pattern, folder)
                 if analysis_match:
                     combined=os.path.join(configuration.ME_dir,folder)
                     if os.path.isdir(combined):
@@ -154,7 +152,7 @@ def main():
             if ME_csv:
                 out_lines=combine_left_right(out_lines,ME_csv[0])
         else:
-        ###Old method of searching
+            #Old method of searching
             ME_list=os.listdir(os.path.join(configuration.ME_dir))
             ME_folders=list()
             for folder in ME_list:
@@ -268,6 +266,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-

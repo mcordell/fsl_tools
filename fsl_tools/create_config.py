@@ -11,6 +11,7 @@ def main():
     config.set('Analysis Directories', 'first_level_dir', "/Volumes/storage/TAF_fanal/FS/Ctrl/x305/r2")
     config.set('Analysis Directories', 'FE_dir', "/Volumes/storage/TAF_fanal/FS/FE2")
     config.set('Analysis Directories', 'ME_dir', '/Volumes/storage/TAF_fanal/FS/ME')
+    config.set('Analysis Directories', 'template', 'template.xls')
 
     config.add_section('run_to_atlas')
     config.set('run_to_atlas','reg_name','qreg_8s')
@@ -22,6 +23,8 @@ def main():
     config.add_section('fsl_directories')
     config.set("fsl_directories",'standard_brain',"/usr/local/fsl/data/standard/MNI152_T1_2mm_brain")
 
+    config.add_section('run_to_atlas')
+    config.set("run_to_atlas",'me_pattern',"_cope")
 
 
     with open('example.cfg', 'wb') as configfile:
