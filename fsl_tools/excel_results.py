@@ -64,6 +64,7 @@ class ExcelResults:
         self.vertical_move=vertical_move
         self.horizontal_move=horizontal_move
         self.cope_match_pattern=configuration.cope_pattern
+        self.LABEL_POS_ROW=3
 
     def determine_cope(self,in_string):
         #TODO could be moved somewhereelse
@@ -84,25 +85,29 @@ class ExcelResults:
         if cope_number:
             return cope_number
 
-    def main(self):
-        #open template file
+    def intialize_workbook(self):
         """
-
+            Loads the template excel workbook and writes the column labels
         """
         rb = xlrd.open_workbook(self.template_path, formatting_info=True)
-        #ws0 = rb.sheet_by_index(0)
-        wb= copy.copy(rb)
+        wb=copy.copy(rb)
+        #TODO this assumes that we are only working on the "first" sheet
         ws = wb.get_sheet(0)
-        label_pos=3
-        label_move=8
+        label_pos=self.LABEL_POS_ROW
         count=1
         while count <= len(self.col_labels):
             if label_pos < 256:
                 ws.write(0,label_pos,self.col_labels[str(count)].strip('\"'))
-                label_pos+=label_move
+                label_pos+=self.horizontal_move
             count+=1
-        wb.save('test.xls')
+        self.wb=wb
+        self.ws=ws
 
+    def main(self):
+        """
+
+        """
+        self.intialize_workbook()
 
         vert_start=2
         #noinspection PyUnusedLocal
