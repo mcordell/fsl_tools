@@ -5,6 +5,7 @@ import re
 from utils import fsf_to_csv,fsf_to_one_column,write_report,combine_for_csv, get_input_fsf,combine_left_right
 from fsf_file import FsfFile
 from excel_results import excel_results
+from configuration import Configuration
 def die(message):
     if message:
         print message
@@ -51,6 +52,8 @@ def main():
         die("Please use either -p <path to single feat folder> or\n"+
             "or -a <analysis name>. Not both.")
 
+    configuration=Configuration(config_file_path)
+
 
 
     #find the location of the feat folders within the directories from the config file
@@ -58,12 +61,12 @@ def main():
         ###Search down switch
         if search_down_method:
             #find ME directories that match analysis pattern
-            ME_list=os.listdir(os.path.join(ME_dir))
+            ME_list=os.listdir(os.path.join(configuration.ME_dir))
             ME_folders=list()
             for folder in ME_list:
                 analysis_match=re.search(analysis+"_cope", folder)
                 if analysis_match:
-                    combined=os.path.join(ME_dir,folder)
+                    combined=os.path.join(configuration.ME_dir,folder)
                     if os.path.isdir(combined):
                         ME_folders.append(combined)
 
@@ -100,7 +103,7 @@ def main():
                 one_col.append(",\n")
                 first_csv=fsf_to_csv(first_fsf)
                 if hasattr(first_fsf,'preproc'):
-                    preprocdir=os.path.join(first_level_dir,first_fsf.preproc)
+                    preprocdir=os.path.join(configuration.first_level_dir,first_fsf.preproc)
                     preproc_fsf=FsfFile((os.path.join(preprocdir,'design.fsf')))
                     preproc_csv=fsf_to_csv(preproc_fsf)
                     one_col.extend(fsf_to_one_column(preproc_fsf))
@@ -152,31 +155,31 @@ def main():
                 out_lines=combine_left_right(out_lines,ME_csv[0])
         else:
         ###Old method of searching
-            ME_list=os.listdir(os.path.join(ME_dir))
+            ME_list=os.listdir(os.path.join(configuration.ME_dir))
             ME_folders=list()
             for folder in ME_list:
                 analysis_match=re.search(analysis+"_cope", folder)
                 if analysis_match:
-                    combined=os.path.join(ME_dir,folder)
+                    combined=os.path.join(configuration.ME_dir,folder)
                     if os.path.isdir(combined):
                         ME_folders.append(combined)
 
-            first_list=os.listdir(os.path.join(first_level_dir))
+            first_list=os.listdir(os.path.join(configuration.first_level_dir))
             first_folder=''
             for folder in first_list:
                 analysis_match=re.search(analysis+'.feat', folder)
                 if analysis_match:
-                    combined=os.path.join(first_level_dir,folder)
+                    combined=os.path.join(configuration.first_level_dir,folder)
                     if os.path.isdir(combined):
                         first_folder=combined
                         break
 
-            FE_list=os.listdir(os.path.join(FE_dir))
+            FE_list=os.listdir(os.path.join(configuration.FE_dir))
             FE_folder=''
             for folder in FE_list:
                 analysis_match=re.search(analysis+'.gfeat', folder)
                 if analysis_match:
-                    combined=os.path.join(FE_dir,folder)
+                    combined=os.path.join(configuration.FE_dir,folder)
                     if os.path.isdir(combined):
                         FE_folder=combined
                         break
@@ -192,7 +195,7 @@ def main():
                 if first_csv[2] > height_of_all_lines:
                     height_of_all_lines=first_csv[2]
                 if hasattr(first_fsf,'preproc'):
-                    preprocdir=os.path.join(first_level_dir,first_fsf.preproc)
+                    preprocdir=os.path.join(configuration.first_level_dir,first_fsf.preproc)
                     preproc_fsf=FsfFile((os.path.join(preprocdir,'design.fsf')))
                     preproc_csv=fsf_to_csv(preproc_fsf)
                     one_col.extend(fsf_to_one_column(preproc_fsf))
