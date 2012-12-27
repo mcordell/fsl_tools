@@ -1,5 +1,7 @@
 __author__ = 'Michael'
-import  os, xlrd, re
+import  os
+import xlrd
+import re
 from xlutils import copy
 from PIL import Image
 
