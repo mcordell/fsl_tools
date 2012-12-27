@@ -5,9 +5,6 @@ import re
 from xlutils import copy
 from PIL import Image
 
-
-
-
 class ExcelResults:
     def __init__(self,col_labels,row_labels, ME_paths,excel_outpath,configuration, scale_factor=.65, 
                  vertical_move=27, horizontal_move=8):
@@ -60,6 +57,9 @@ class ExcelResults:
         self.ws=ws
 
     def write_all_rows(self):
+        """
+            Writes all mixed effects as invidual rows to this ExcelResults worksheet
+        """
         organized_MEs=self.organize_ME_paths()
         vert_start=2
         horz_start=0
@@ -96,11 +96,19 @@ class ExcelResults:
         self.wb.save(self.excel_outpath)
 
     def write_row(self,row_name,vertical_start,horizontal_start,me_root_path,worksheet):
-        """ Writes a row in a given worksheet, searching though a me_root_path, using
-            the results images within that root directory.row_name is written above each image in the row
-            Row writing starts at horiztonal/vertical cell position within the worksheet. Horizontal position
-            moves with the horiztonal move
-        """
+        """  
+            Searches through a mixed effects directory for result images and writes them to a row
+            within a worksheet. The image scaling in specified by the scale_factor variable of 
+            ExcelResults object. Similarly, the horizontal move factor is the number of cells 
+            to move over for each image.
+            
+            Attributes:
+                row_name - the title written above each image in the row
+                horizontal_start - the column number where the first image is inserted within the worksheet
+                vertical_start - the row number where the first image is inserted within the worksheet
+                me_root_path - the path to the mixed effects directory where the results are located
+                worksheet - the worksheet that is written
+       """
         files_list=os.listdir(me_root_path)
         for cope_name in files_list:
             copenumber_match=re.search(self.configuration.cope_pattern,cope_name)
