@@ -3,14 +3,6 @@ import  os, xlrd, re
 from xlutils import copy
 from PIL import Image
 
-def get_z_value(report_path):
-    with open(report_path, 'r') as f:
-        lines=f.readlines()
-    for i in range(0,len(lines)):
-        line=lines[i]
-        line_match=re.search("<IMG BORDER=0 SRC=.ramp.gif>",line)
-        if line_match:
-            return lines[i+1]
 
 
 
@@ -133,11 +125,30 @@ class ExcelResults:
                             worksheet.insert_bitmap("resized_temp.bmp",vertical_start,horizontal_start+horizontal_count_move)
                             halfway=((fe_cope_num-1)*self.horizontal_move)+(.5*self.horizontal_move)
                             halfway=int(halfway)
-                            z=get_z_value(report_poststats)
+                            z_value=self.get_z_value(report_poststats)
                             resized=img.resize((new_width,new_height))
-                            worksheet.write(vertical_start-1,horizontal_start+halfway,z.rstrip())
+                            worksheet.write(vertical_start-1,horizontal_start+halfway,z_value.rstrip())
                             os.remove("resized_temp.bmp")
 
+    def get_z_value(self,report_path):
+        """
+            Searches post stats report to find the max z-value
+
+            Attributes:
+                report_path - path to the report post states to be parsed
+
+            Returns:
+                z_value - z value from the report_path
+        """
+        with open(report_path, 'r') as f:
+            lines=f.readlines()
+        for i in range(0,len(lines)):
+            line=lines[i]
+            line_match=re.search("<IMG BORDER=0 SRC=.ramp.gif>",line)
+            if line_match:
+                z_value_line=lines[i+1]
+                z_value=z_value_line.rstrip()
+                return z_value
 
     if __name__ == "__main__":
         main()
