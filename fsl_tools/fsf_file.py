@@ -2,7 +2,7 @@ __author__ = 'Michael'
 import re
 from utils import binary_value_to_yes_no
 
-class fsf_file:
+class FsfFile:
     Name = "FSF File"
     def __init__(self, path):
         #Define constants
