@@ -1,3 +1,4 @@
+#! /usr/bin/env python
 __author__ = 'Michael'
 from  threading import Thread
 from Queue import Queue
@@ -59,7 +60,7 @@ if __name__ == "__main__":
     parser.add_argument('-c', '--cores',default=2)
     parser.add_argument('-q', '--queue_file',default='featfiles.txt')
     args=parser.parse_args()
-    number_of_threads=args.cores
+    number_of_threads=int(args.cores)
     queue_file_path=args.queue_file
 
     #create queue
