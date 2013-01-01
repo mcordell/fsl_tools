@@ -57,10 +57,10 @@ def searcher(queue, file_id):
 if __name__ == "__main__":
     #load configuration file
     parser = argparse.ArgumentParser()
-    parser.add_argument('-c', '--cores',default=2)
+    parser.add_argument('-t', '--threads',default=2)
     parser.add_argument('-q', '--queue_file',default='featfiles.txt')
     args=parser.parse_args()
-    number_of_threads=int(args.cores)
+    number_of_threads=int(args.threads)
     queue_file_path=args.queue_file
 
     #create queue
