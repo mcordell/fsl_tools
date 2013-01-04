@@ -254,7 +254,7 @@ def main():
             first_cope_names[key]=contrast.name
 
         if simple_output is None:
-            excel=excel_results(fe_cope_names,first_cope_names, ME_folders, template_path,excel_output_path)
+            excel=ExcelResults(fe_cope_names,first_cope_names, ME_folders, excel_output_path,configuration)
             excel.main()
     elif feat_folder_path :
         fsf_single=FsfFile(os.path.join(feat_folder_path))
