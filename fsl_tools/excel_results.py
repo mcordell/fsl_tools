@@ -11,6 +11,7 @@ class ExcelResults:
         self.col_labels=col_labels
         self.row_labels=row_labels
         self.ME_paths=ME_paths
+        self.configuration=configuration
         self.template_path=configuration.template_path
         self.excel_outpath=excel_outpath
         self.scale_factor=scale_factor
@@ -46,7 +47,7 @@ class ExcelResults:
         wb=copy.copy(rb)
         #TODO this assumes that we are only working on the "first" sheet
         ws = wb.get_sheet(0)
-        label_pos=self.LABEL_POS_ROW
+        label_pos=self.LABEL_POS_START_COL
         count=1
         while count <= len(self.col_labels):
             if label_pos < 256:
@@ -72,7 +73,7 @@ class ExcelResults:
                 name=''
                 print "Higher level Mixed effects not found in lower level copes. Mismatch?"
             me=organized_MEs[i]
-            self.write_row(name,vert_start,horz_start,me,self.ws,self.horizontal_move,self.scale_factor)
+            self.write_row(name,vert_start,horz_start,me,self.ws)
             vert_start+=self.vertical_move
 
 
